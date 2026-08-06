@@ -1,30 +1,42 @@
+type DashboardStatsProps = {
+  appliedJobs: number;
+  savedJobs: number;
+  profileViews: number;
+  messages: number;
+};
+
 import Card from "@/components/common/Card";
 
-const stats = [
-  {
-    title: "Applied Jobs",
-    value: "18",
-  },
-  {
-    title: "Saved Jobs",
-    value: "42",
-  },
-  {
-    title: "Profile Views",
-    value: "126",
-  },
-  {
-    title: "Messages",
-    value: "9",
-  },
-];
+export default function DashboardStats({
+  appliedJobs,
+  savedJobs,
+  profileViews,
+  messages,
+}: DashboardStatsProps) {
+  const stats = [
+    {
+      title: "Applied Jobs",
+      value: appliedJobs,
+    },
+    {
+      title: "Saved Jobs",
+      value: savedJobs,
+    },
+    {
+      title: "Profile Views",
+      value: profileViews,
+    },
+    {
+      title: "Messages",
+      value: messages,
+    },
+  ];
 
-export default function DashboardStats() {
   return (
-    <div className="mb-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
       {stats.map((item) => (
         <Card key={item.title}>
-          <p className="text-slate-500">
+          <p className="text-sm text-slate-500">
             {item.title}
           </p>
 

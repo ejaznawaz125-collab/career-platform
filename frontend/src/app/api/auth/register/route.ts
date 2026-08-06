@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { registerSchema } from "@/lib/validators";
@@ -26,15 +27,15 @@ export async function POST(request: Request) {
 
     const hashedPassword = await hashPassword(data.password);
 
-    const user = await prisma.user.create({
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: hashedPassword,
-      },
-    });
-
+  const user = await prisma.user.create({
+  data: {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    password: hashedPassword,
+    role: UserRole.USER,
+  },
+});
     return NextResponse.json(
       {
         success: true,

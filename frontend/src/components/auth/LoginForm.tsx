@@ -14,29 +14,51 @@ const [password, setPassword] = useState("");
 
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState("");
-async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+async function handleSubmit(
+  e: React.FormEvent
+) {
   e.preventDefault();
 
   setLoading(true);
   setError("");
 
-  const result = await signIn("credentials", {
-    email,
-    password,
-    redirect: false,
-  });
+  try {
 
-  setLoading(false);
+    const result = await signIn(
+      "credentials",
+      {
+        email,
+        password,
+        redirect: false,
+      }
+    );
 
-  if (result?.error) {
-    setError("Invalid email or password");
-    return;
+
+    if (result?.error) {
+      setError(
+        "Invalid email or password"
+      );
+
+      return;
+    }
+
+
+    router.push("/dashboard");
+    router.refresh();
+
+
+  } catch {
+
+    setError(
+      "Something went wrong. Please try again."
+    );
+
+  } finally {
+
+    setLoading(false);
+
   }
-
-  router.push("/dashboard");
-  router.refresh();
-}
-  return (
+}  return (
     <div className="w-full max-w-md">
 
       <h1 className="mb-2 text-4xl font-bold text-slate-900">
@@ -81,7 +103,11 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
           </a>
 
         </div>
-
+{error && (
+  <p className="text-sm text-red-600">
+    {error}
+  </p>
+)}
         <Button
   text="Login"
   type="submit"

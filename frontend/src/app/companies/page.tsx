@@ -1,10 +1,13 @@
 import { getCompanies } from "@/services/company.service";
-import CompaniesGrid from "@/components/company-details/CompanyGrid";
-import CompanySearch from "@/components/company-details/CompanySearch";
-import CompanyFilters from "@/components/company-details/CompanyFilters";
+
+import CompaniesGrid from "@/components/companies/CompaniesGrid";
+import CompanySearch from "@/components/companies/CompanySearch";
+import CompanyFilters from "@/components/companies/CompanyFilters";
+
+export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
-  const companies = await getCompanies();
+  const { companies } = await getCompanies();
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">

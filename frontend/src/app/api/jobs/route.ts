@@ -1,40 +1,31 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { getJobs } from "@/services/job.service";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const jobs = await prisma.job.findMany({
-      where: {
-        status: "ACTIVE",
-      },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logo: true,
-            country: true,
-            city: true,
-            verified: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const { searchParams } = new URL(request.url);
+
+    const result = await getJobs({
+      search: searchParams.get("search") || undefined,
+      companyId: searchParams.get("companyId") || undefined,
+      categoryId: searchParams.get("categoryId") || undefined,
+      country: searchParams.get("country") || undefined,
+      city: searchParams.get("city") || undefined,
+      featured:
+        searchParams.get("featured") === null
+          ? undefined
+          : searchParams.get("featured") === "true",
+      urgent:
+        searchParams.get("urgent") === null
+          ? undefined
+          : searchParams.get("urgent") === "true",
+      page: Number(searchParams.get("page") ?? 1),
+      limit: Number(searchParams.get("limit") ?? 12),
     });
 
     return NextResponse.json({
       success: true,
-      jobs,
+      ...result,
     });
   } catch (error) {
     console.error(error);

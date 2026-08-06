@@ -1,27 +1,20 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+import { getCompanies } from "@/services/company.service";
+
+export async function GET(request: NextRequest) {
   try {
-    const companies = await prisma.company.findMany({
-      where: {
-        isActive: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        _count: {
-          select: {
-            jobs: true,
-          },
-        },
-      },
+    const { searchParams } = new URL(request.url);
+
+    const result = await getCompanies({
+      search: searchParams.get("search") ?? undefined,
+      page: Number(searchParams.get("page") ?? "1"),
+      limit: Number(searchParams.get("limit") ?? "12"),
     });
 
     return NextResponse.json({
       success: true,
-      companies,
+      ...result,
     });
   } catch (error) {
     console.error(error);
@@ -33,7 +26,7 @@ export async function GET() {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

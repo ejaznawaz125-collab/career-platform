@@ -10,11 +10,16 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@auth/core": "^0.41.2",
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/client": "^6.16.2",
+    "@vercel/blob": "^2.7.0",
     "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.542.0",
     "next": "16.2.10",
     "next-auth": "5.0.0-beta.31",
@@ -32,6 +37,7 @@
     "eslint-config-next": "16.2.10",
     "prisma": "^6.16.2",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
