@@ -217,6 +217,10 @@ export default function ProfilePhotoManager() {
     }
 
     function updateViewportSize(nextSize: number) {
+      if (!Number.isFinite(nextSize) || nextSize <= 0) {
+        return;
+      }
+
       const roundedSize = Math.max(1, Math.round(nextSize));
       const previousSize = viewportSizeRef.current;
 
