@@ -8,11 +8,11 @@ datasource db {
 }
 
 model User {
-  id                String            @id @default(cuid())
+  id                String               @id @default(cuid())
   firstName         String
   lastName          String
-  username          String?           @unique
-  email             String            @unique
+  username          String?              @unique
+  email             String               @unique
   emailVerified     DateTime?
   password          String
   phone             String?
@@ -25,12 +25,12 @@ model User {
   linkedinUrl       String?
   githubUrl         String?
   portfolioUrl      String?
-  role              UserRole          @default(USER)
-  status            UserStatus        @default(ACTIVE)
-  isProfileComplete Boolean           @default(false)
+  role              UserRole             @default(USER)
+  status            UserStatus           @default(ACTIVE)
+  isProfileComplete Boolean              @default(false)
   lastLogin         DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
   accounts          Account[]
   adminLogs         AdminLog[]
   aiMatches         AiJobMatch[]
@@ -45,6 +45,7 @@ model User {
   searchHistory     SearchHistory[]
   sessions          Session[]
   subscriptions     Subscription[]
+  resumeUploads     ResumeUploadIntent[]
 }
 
 model Account {
@@ -141,6 +142,7 @@ model CandidateProfile {
   resumes           Resume[]
   languages         CandidateLanguage[]
   portfolioProjects PortfolioProject[]
+  resumeUploads     ResumeUploadIntent[]
 }
 
 model Resume {
@@ -152,6 +154,10 @@ model Resume {
 
   fileUrl String
 
+  storagePath String? @unique
+
+  contentHash String?
+
   originalName String?
 
   mimeType String?
@@ -160,6 +166,14 @@ model Resume {
 
   version Int @default(1)
 
+  versionGroupId String?
+
+  categoryTags String[] @default([])
+
+  uploadStatus ResumeUploadStatus @default(READY)
+
+  /// PostgreSQL enforces one default per profile through the migration-only
+  /// partial index Resume_one_default_per_profile; future migrations must preserve it.
   isDefault Boolean @default(false)
 
   isPublic Boolean @default(false)
@@ -172,6 +186,32 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   profile CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, contentHash])
+  @@unique([profileId, versionGroupId, version])
+  @@index([profileId])
+  @@index([profileId, versionGroupId])
+}
+
+model ResumeUploadIntent {
+  id String @id @default(cuid())
+
+  userId    String
+  profileId String
+
+  pathname     String @unique
+  originalName String
+  mimeType     String
+  fileSize     Int
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([profileId, expiresAt])
 }
 
 model Experience {
@@ -661,4 +701,9 @@ enum EmploymentType {
   TEMPORARY
   APPRENTICESHIP
   SELF_EMPLOYED
+}
+
+enum ResumeUploadStatus {
+  LEGACY
+  READY
 }
