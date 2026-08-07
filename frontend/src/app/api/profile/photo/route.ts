@@ -1,65 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  getAuthenticatedPhotoUser,
+  removeProfilePhotoReference,
+  replaceProfilePhotoReference,
+} from "@/lib/profile-photo-server";
 
 const photoSchema = z.object({
   image: z
     .string()
     .trim()
     .url("Please enter a valid image URL.")
-    .max(
-      1000,
-      "Image URL cannot exceed 1000 characters.",
-    ),
+    .max(1000, "Image URL cannot exceed 1000 characters."),
 });
-
-async function getAuthenticatedUserId() {
-  const session = await auth();
-
-  if (!session?.user?.email) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized.",
-        },
-        {
-          status: 401,
-        },
-      ),
-    };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      image: true,
-    },
-  });
-
-  if (!user) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        {
-          status: 404,
-        },
-      ),
-    };
-  }
-
-  return {
-    user,
-  };
-}
 
 function handleError(
   error: unknown,
@@ -72,9 +26,7 @@ function handleError(
         message: "Please enter a valid image URL.",
         errors: error.flatten().fieldErrors,
       },
-      {
-        status: 400,
-      },
+      { status: 400 },
     );
   }
 
@@ -85,90 +37,101 @@ function handleError(
       success: false,
       message: fallbackMessage,
     },
-    {
-      status: 500,
-    },
+    { status: 500 },
   );
 }
 
 export async function GET() {
   try {
-    const authentication =
-      await getAuthenticatedUserId();
+    const user = await getAuthenticatedPhotoUser();
 
-    if (authentication.error) {
-      return authentication.error;
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        { status: 401 },
+      );
     }
 
     return NextResponse.json({
       success: true,
-      image: authentication.user.image,
+      image: user.image,
     });
   } catch (error) {
-    return handleError(
-      error,
-      "Failed to load profile photo.",
-    );
+    return handleError(error, "Failed to load profile photo.");
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const authentication =
-      await getAuthenticatedUserId();
+    const user = await getAuthenticatedPhotoUser();
 
-    if (authentication.error) {
-      return authentication.error;
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        { status: 401 },
+      );
     }
 
     const body: unknown = await request.json();
     const data = photoSchema.parse(body);
-
-    const user = await prisma.user.update({
-      where: {
-        id: authentication.user.id,
-      },
-      data: {
-        image: data.image,
-      },
-      select: {
-        id: true,
-        image: true,
-      },
+    const replaced = await replaceProfilePhotoReference({
+      user,
+      nextImage: data.image,
     });
+
+    if (!replaced) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Your profile photo changed during this update. Please try again.",
+        },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: "Profile photo updated successfully.",
-      image: user.image,
+      image: data.image,
     });
   } catch (error) {
-    return handleError(
-      error,
-      "Failed to update profile photo.",
-    );
+    return handleError(error, "Failed to update profile photo.");
   }
 }
 
 export async function DELETE() {
   try {
-    const authentication =
-      await getAuthenticatedUserId();
+    const user = await getAuthenticatedPhotoUser();
 
-    if (authentication.error) {
-      return authentication.error;
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized.",
+        },
+        { status: 401 },
+      );
     }
 
-    await prisma.user.update({
-      where: {
-        id: authentication.user.id,
-      },
-      data: {
-        image: null,
-      },
-    });
+    const removed = await removeProfilePhotoReference(user);
+
+    if (!removed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Your profile photo changed during removal. Please try again.",
+        },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -176,9 +139,6 @@ export async function DELETE() {
       image: null,
     });
   } catch (error) {
-    return handleError(
-      error,
-      "Failed to remove profile photo.",
-    );
+    return handleError(error, "Failed to remove profile photo.");
   }
 }

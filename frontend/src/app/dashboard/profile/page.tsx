@@ -8,6 +8,7 @@ import EducationManager from "@/components/profile/EducationManager";
 import ExperienceManager from "@/components/profile/ExperienceManager";
 import LanguagesManager from "@/components/profile/LanguagesManager";
 import PortfolioManager from "@/components/profile/PortfolioManager";
+import ProfilePhotoManager from "@/components/profile/ProfilePhotoManager";
 import ProfileCompletionCard from "@/components/profile/ProfileCompletionCard";
 import ResumeManager from "@/components/profile/ResumeManager";
 import SkillsManager from "@/components/profile/SkillsManager";
@@ -43,6 +44,8 @@ export default async function CandidateProfilePage() {
 
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
               <div className="min-w-0 space-y-8">
+                <ProfilePhotoManager />
+
                 <CandidateProfileForm />
 
                 <SkillsManager />

@@ -15,3 +15,5 @@ export { default as ResumeManager } from "./ResumeManager";
 export { default as PublicProfileSettings } from "./PublicProfileSettings";
 
 export { default as ProfileCompletionCard } from "./ProfileCompletionCard";
+
+export { default as ProfilePhotoManager } from "./ProfilePhotoManager";
