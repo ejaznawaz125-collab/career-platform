@@ -30,13 +30,19 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
 
-          <button className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium hover:bg-gray-100 transition">
+          <Link
+            href="/login"
+            className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium transition hover:bg-gray-100"
+          >
             Login
-          </button>
+          </Link>
 
-          <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">
+          <Link
+            href="/register"
+            className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+          >
             Register
-          </button>
+          </Link>
 
         </div>
 
