@@ -20,6 +20,7 @@ import {
   RESUME_CATEGORY_OPTIONS,
   RESUME_MAX_FILE_SIZE,
 } from "@/lib/resume";
+import ResumeImportReview from "./ResumeImportReview";
 
 type ResumeRecord = {
   id: string;
@@ -415,6 +416,8 @@ export default function ResumeManager() {
           {uploading ? "Uploading…" : "Upload resume"}
         </button>
       </form>
+
+      <ResumeImportReview resumes={resumes} onImported={loadResumes} />
 
       <div className="mt-8">
         <h3 className="font-bold text-slate-900">Your resumes</h3>
