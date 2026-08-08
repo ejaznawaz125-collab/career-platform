@@ -183,6 +183,7 @@ export default function ProfileWorkspace() {
   const [visitedSections, setVisitedSections] = useState<Set<SectionId>>(
     () => new Set(["basic"]),
   );
+  const [resumeAutoFillRequest, setResumeAutoFillRequest] = useState(0);
   const desktopButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const mobileButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -197,6 +198,11 @@ export default function ProfileWorkspace() {
       next.add(section);
       return next;
     });
+  }
+
+  function startResumeAutoFill() {
+    setResumeAutoFillRequest((current) => current + 1);
+    selectSection("resumes");
   }
 
   const activeSectionDetails = sections.find(
@@ -259,7 +265,25 @@ export default function ProfileWorkspace() {
                 hidden={!isActive}
                 tabIndex={0}
               >
-                {visitedSections.has(section.id) ? (
+                {visitedSections.has(section.id) ? section.id === "basic" ? (
+                  <>
+                    <section className="mb-6 rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm sm:p-7" aria-labelledby="resume-auto-fill-heading">
+                      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="max-w-2xl">
+                          <p className="inline-flex items-center gap-2 text-sm font-bold text-blue-700"><Sparkles size={17} aria-hidden="true" /> Save time</p>
+                          <h3 id="resume-auto-fill-heading" className="mt-2 text-xl font-bold text-slate-950">Auto-Fill Profile with Resume</h3>
+                          <p className="mt-2 text-sm leading-6 text-slate-600">Upload your PDF or DOCX resume and we’ll prepare your personal information, experience, education, skills, and other profile details for review.</p>
+                          <p className="mt-2 text-sm font-semibold text-slate-700">Nothing is added to your profile until you review and confirm it.</p>
+                        </div>
+                        <button type="button" onClick={startResumeAutoFill} className="shrink-0 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">Upload Resume &amp; Auto-Fill</button>
+                      </div>
+                    </section>
+                    <div className="mb-6 flex items-center gap-4" aria-hidden="true"><span className="h-px flex-1 bg-slate-200" /><span className="text-xs font-semibold uppercase tracking-wide text-slate-500">or complete your information manually</span><span className="h-px flex-1 bg-slate-200" /></div>
+                    <SectionComponent />
+                  </>
+                ) : section.id === "resumes" ? (
+                  <ResumeManager autoFillRequest={resumeAutoFillRequest} />
+                ) : (
                   <SectionComponent />
                 ) : null}
               </div>

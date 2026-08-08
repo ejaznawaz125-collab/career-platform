@@ -6,6 +6,7 @@ import { z, ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
   createResumeDownloadUrl,
+  deriveResumeTitle,
   isOwnedResumePath,
   normalizeResumeTags,
   RESUME_MAX_FILE_SIZE,
@@ -17,11 +18,11 @@ import { validateManagedResume } from "@/lib/resume-file-validation";
 
 const finalizeSchema = z.object({
   pathname: z.string().trim().min(1).max(500),
-  title: z.string().trim().min(2).max(150),
+  title: z.string().trim().min(2).max(150).optional(),
   originalName: z.string().trim().min(1).max(255),
   mimeType: z.string().trim().min(1).max(150),
   fileSize: z.number().int().positive().max(RESUME_MAX_FILE_SIZE),
-  categoryTags: z.array(z.string().trim().min(1).max(40)).max(12),
+  categoryTags: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
   isDefault: z.boolean().default(false),
   versionGroupId: z.string().trim().min(1).max(100).nullable().optional(),
 });
@@ -183,7 +184,7 @@ export async function POST(request: Request) {
           data: {
             id: resumeId,
             profileId: owner.profileId,
-            title: data.title,
+            title: data.title ?? deriveResumeTitle(intent.originalName),
             fileUrl: createResumeDownloadUrl(resumeId),
             storagePath: pathname,
             contentHash,

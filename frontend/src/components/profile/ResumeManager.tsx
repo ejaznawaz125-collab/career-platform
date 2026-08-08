@@ -146,8 +146,10 @@ function TagSelector({
   );
 }
 
-export default function ResumeManager() {
+export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFormRef = useRef<HTMLFormElement>(null);
+  const handledAutoFillRequest = useRef(0);
   const [resumes, setResumes] = useState<ResumeRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -156,9 +158,10 @@ export default function ResumeManager() {
   const [editing, setEditing] = useState<ResumeRecord | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
-  const [categoryTags, setCategoryTags] = useState<string[]>(["General"]);
-  const [versionGroupId, setVersionGroupId] = useState("");
-  const [isDefault, setIsDefault] = useState(false);
+  const [categoryTags, setCategoryTags] = useState<string[]>([]);
+  const [versionGroupId, setVersionGroupId] = useState<string | null>(null);
+  const [autoFillMode, setAutoFillMode] = useState(false);
+  const [importResumeId, setImportResumeId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -181,6 +184,21 @@ export default function ResumeManager() {
     void loadResumes();
   }, [loadResumes]);
 
+  useEffect(() => {
+    if (!autoFillRequest || autoFillRequest === handledAutoFillRequest.current) return;
+    handledAutoFillRequest.current = autoFillRequest;
+    setAutoFillMode(true);
+    setVersionGroupId(null);
+    setSelectedFile(null);
+    setTitle("");
+    setCategoryTags([]);
+    setError("");
+    setMessage("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    uploadFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    fileInputRef.current?.click();
+  }, [autoFillRequest]);
+
   function selectFile(file: File | undefined) {
     if (!file) return;
     const extension = getResumeExtension(file.name);
@@ -197,15 +215,13 @@ export default function ResumeManager() {
 
     setError("");
     setSelectedFile(file);
-    if (!title.trim()) setTitle(file.name.replace(/\.(pdf|docx)$/i, ""));
   }
 
   function resetUploadForm() {
     setSelectedFile(null);
     setTitle("");
-    setCategoryTags(["General"]);
-    setVersionGroupId("");
-    setIsDefault(false);
+    setCategoryTags([]);
+    setVersionGroupId(null);
     setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -252,13 +268,12 @@ export default function ResumeManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pathname: tokenData.pathname,
-          title,
+          ...(title.trim() ? { title: title.trim() } : {}),
           originalName: selectedFile.name,
           mimeType,
           fileSize: selectedFile.size,
           categoryTags,
-          isDefault,
-          versionGroupId: versionGroupId || null,
+          ...(versionGroupId ? { versionGroupId } : {}),
         }),
       });
       const finalizeData = (await finalizeResponse.json()) as ApiResponse;
@@ -267,9 +282,11 @@ export default function ResumeManager() {
       }
 
       setMessage(getMessage(finalizeData, "Resume uploaded securely."));
+      const shouldPrepareImport = autoFillMode && finalizeData.resume?.id;
       pendingPathname = null;
       resetUploadForm();
       await loadResumes();
+      if (shouldPrepareImport) setImportResumeId(finalizeData.resume!.id);
     } catch (uploadError) {
       if (pendingPathname) {
         await fetch("/api/upload/resume", {
@@ -335,19 +352,6 @@ export default function ResumeManager() {
     }
   }
 
-  const versionGroups = Array.from(
-    resumes
-      .filter((resume) => resume.versionGroupId && resume.uploadStatus === "READY")
-      .reduce((groups, resume) => {
-        const current = groups.get(resume.versionGroupId!);
-        if (!current || resume.version > current.version) {
-          groups.set(resume.versionGroupId!, resume);
-        }
-        return groups;
-      }, new Map<string, ResumeRecord>())
-      .values(),
-  );
-
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex items-start gap-3">
@@ -363,14 +367,22 @@ export default function ResumeManager() {
       {error ? <div role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">{error}</div> : null}
       {message ? <div role="status" className="mt-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">{message}</div> : null}
 
-      <form onSubmit={handleUpload} className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
-        <h3 className="font-bold text-slate-900">Upload a resume</h3>
+      <form ref={uploadFormRef} onSubmit={handleUpload} className="mt-7 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+        <h3 className="font-bold text-slate-900">{autoFillMode ? "Upload a resume to auto-fill your profile" : "Upload a resume"}</h3>
+        {autoFillMode ? <p className="mt-2 text-sm text-slate-600">After the secure upload, we’ll prepare an import preview. Nothing changes until you confirm your selections.</p> : null}
+        {versionGroupId ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            <span>Uploading a new version. The version number will be assigned automatically.</span>
+            <button type="button" onClick={() => setVersionGroupId(null)} className="font-semibold hover:underline">Upload as a separate resume</button>
+          </div>
+        ) : null}
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className="sm:col-span-2">
             <span className="text-sm font-semibold text-slate-700">Resume file</span>
             <input
               ref={fileInputRef}
               type="file"
+              required
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={(event) => selectFile(event.target.files?.[0])}
               disabled={uploading}
@@ -379,29 +391,12 @@ export default function ResumeManager() {
             <span className="mt-1 block text-xs text-slate-500">PDF or DOCX, maximum 10 MB.</span>
           </label>
 
-          <label>
-            <span className="text-sm font-semibold text-slate-700">Title</span>
-            <input required minLength={2} maxLength={150} value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
-          </label>
-
-          <label>
-            <span className="text-sm font-semibold text-slate-700">Version</span>
-            <select value={versionGroupId} onChange={(event) => setVersionGroupId(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100">
-              <option value="">New resume (version 1)</option>
-              {versionGroups.map((resume) => (
-                <option key={resume.versionGroupId} value={resume.versionGroupId ?? ""}>
-                  New version of {resume.title} (currently v{resume.version})
-                </option>
-              ))}
-            </select>
+          <label className="sm:col-span-2">
+            <span className="text-sm font-semibold text-slate-700">Title <span className="font-normal text-slate-500">(optional)</span></span>
+            <input minLength={2} maxLength={150} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Defaults to the filename" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100" />
           </label>
 
           <div className="sm:col-span-2"><TagSelector tags={categoryTags} onChange={setCategoryTags} /></div>
-
-          <label className="flex items-center gap-3 sm:col-span-2">
-            <input type="checkbox" checked={isDefault} onChange={(event) => setIsDefault(event.target.checked)} className="size-4 accent-blue-600" />
-            <span className="text-sm font-medium text-slate-700">Make this my default resume</span>
-          </label>
         </div>
 
         {uploading ? (
@@ -417,7 +412,7 @@ export default function ResumeManager() {
         </button>
       </form>
 
-      <ResumeImportReview resumes={resumes} onImported={loadResumes} />
+      <ResumeImportReview resumes={resumes} onImported={loadResumes} requestedResumeId={importResumeId} />
 
       <div className="mt-8">
         <h3 className="font-bold text-slate-900">Your resumes</h3>
@@ -443,6 +438,7 @@ export default function ResumeManager() {
 
                   <div className="flex flex-wrap gap-2">
                     <a href={resume.downloadUrl} target={resume.uploadStatus === "LEGACY" ? "_blank" : undefined} rel={resume.uploadStatus === "LEGACY" ? "noreferrer" : undefined} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50"><Download size={15} /> Download</a>
+                    {resume.uploadStatus === "READY" ? <button type="button" onClick={() => { setAutoFillMode(false); setVersionGroupId(resume.versionGroupId); setTitle(resume.title); setCategoryTags(resume.categoryTags); setSelectedFile(null); if (fileInputRef.current) { fileInputRef.current.value = ""; fileInputRef.current.click(); } }} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-50"><Upload size={15} /> New version</button> : null}
                     <button type="button" onClick={() => setEditing({ ...resume })} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"><Pencil size={15} /> Edit</button>
                     <button type="button" onClick={() => void deleteResume(resume)} disabled={deletingId === resume.id} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">{deletingId === resume.id ? <LoaderCircle className="animate-spin" size={15} /> : <Trash2 size={15} />} Delete</button>
                   </div>

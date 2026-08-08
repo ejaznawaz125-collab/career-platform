@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, LoaderCircle, Sparkles, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ResumeOption = { id: string; title: string; version: number; uploadStatus: "LEGACY" | "READY" };
 type Scalar = { path: string; label: string; existing: string | number | null; imported: string | number; state: "EMPTY" | "CONFLICT" | "SAME"; selected: boolean };
@@ -25,23 +25,30 @@ function CollectionField({ field, value, onChange }: { field: string; value: unk
   return <label className="text-xs font-semibold capitalize text-slate-600">{label}<input type={field.endsWith("Date") ? "date" : numeric ? "number" : "text"} value={Array.isArray(value) ? value.join(", ") : value === null ? "" : String(value)} onChange={(event) => onChange(Array.isArray(value) ? event.target.value.split(",").map((entry) => entry.trim()).filter(Boolean) : numeric ? event.target.value === "" ? null : Number(event.target.value) : event.target.value || null)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900" /></label>;
 }
 
-export default function ResumeImportReview({ resumes, onImported }: { resumes: ResumeOption[]; onImported: () => Promise<void> }) {
+export default function ResumeImportReview({ resumes, onImported, requestedResumeId = null }: { resumes: ResumeOption[]; onImported: () => Promise<void>; requestedResumeId?: string | null }) {
   const managed = resumes.filter((resume) => resume.uploadStatus === "READY");
+  const handledRequest = useRef<string | null>(null);
   const [resumeId, setResumeId] = useState(""); const [stage, setStage] = useState<"select" | "processing" | "review" | "result">("select");
   const [parseId, setParseId] = useState(""); const [data, setData] = useState<ImportData | null>(null); const [plan, setPlan] = useState<Plan | null>(null);
   const [selected, setSelected] = useState<Record<CollectionKey, number[]>>({ experience: [], education: [], skills: [], languages: [], projects: [] });
   const [error, setError] = useState(""); const [summary, setSummary] = useState<Record<string, number> | null>(null);
 
-  async function processResume() {
-    if (!resumeId) return; setStage("processing"); setError("");
+  async function processResume(selectedResumeId = resumeId) {
+    if (!selectedResumeId) return; setResumeId(selectedResumeId); setStage("processing"); setError("");
     try {
-      const response = await fetch("/api/profile/resume-import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeId }) });
+      const response = await fetch("/api/profile/resume-import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeId: selectedResumeId }) });
       const result = await response.json(); if (!response.ok || !result.success) throw new Error(result.message ?? "Could not process this resume.");
       setParseId(result.parseId); setData(result.data); setPlan(result.plan);
       const defaults = Object.fromEntries(groups.map(([key]) => [key, (result.data[key] as unknown[]).map((_, index) => index).filter((index) => !result.plan.duplicates[key][index])])) as Record<CollectionKey, number[]>;
       setSelected(defaults); setStage("review");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not process this resume."); setStage("select"); }
   }
+
+  useEffect(() => {
+    if (!requestedResumeId || handledRequest.current === requestedResumeId || !managed.some((resume) => resume.id === requestedResumeId)) return;
+    handledRequest.current = requestedResumeId;
+    void processResume(requestedResumeId);
+  }, [requestedResumeId, managed]);
 
   function updateScalar(index: number, changes: Partial<Scalar>) { if (!plan) return; setPlan({ ...plan, scalars: plan.scalars.map((item, itemIndex) => itemIndex === index ? { ...item, ...changes } : item) }); }
   function updateCollection(key: CollectionKey, index: number, field: string, value: unknown) { if (!data) return; setData({ ...data, [key]: data[key].map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item) }); }

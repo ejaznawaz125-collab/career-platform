@@ -43,6 +43,16 @@ export function createResumeDownloadUrl(resumeId: string): string {
   return `/api/files/resume/${encodeURIComponent(resumeId)}`;
 }
 
+export function deriveResumeTitle(originalName: string): string {
+  const title = originalName
+    .replace(/\.(pdf|docx)$/i, "")
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 150);
+  return title.length >= 2 ? title : "Resume";
+}
+
 export function normalizeResumeTags(tags: string[]): string[] {
   const unique = new Map<string, string>();
 
