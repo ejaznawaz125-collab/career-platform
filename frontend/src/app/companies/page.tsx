@@ -3,14 +3,20 @@ import { getCompanies } from "@/services/company.service";
 import CompaniesGrid from "@/components/companies/CompaniesGrid";
 import CompanySearch from "@/components/companies/CompanySearch";
 import CompanyFilters from "@/components/companies/CompanyFilters";
+import Header from "@/components/layout/Header";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompaniesPage() {
-  const { companies } = await getCompanies();
+export default async function CompaniesPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
+  const params = await searchParams;
+  const { companies } = await getCompanies({ search: params.search });
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
+    <main className="min-h-screen bg-slate-50">
+      <Header />
+      <div className="mx-auto max-w-7xl px-6 py-10">
+      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-slate-600"><Link href="/" className="font-semibold text-blue-700 hover:underline">Home</Link><span className="mx-2" aria-hidden="true">/</span><span aria-current="page">Companies</span></nav>
       <div className="mb-10">
         <h1 className="text-4xl font-bold">
           Companies
@@ -21,7 +27,7 @@ export default async function CompaniesPage() {
         </p>
       </div>
 
-      <CompanySearch />
+      <CompanySearch defaultValue={params.search} />
 
       <div className="mt-8">
         <CompanyFilters />
@@ -29,6 +35,7 @@ export default async function CompaniesPage() {
 
       <div className="mt-10">
         <CompaniesGrid companies={companies} />
+      </div>
       </div>
     </main>
   );

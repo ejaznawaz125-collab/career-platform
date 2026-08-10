@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import CompanyAbout from "@/components/companies/CompanyAbout";
 import CompanyHero from "@/components/companies/CompanyHero";
@@ -182,6 +183,7 @@ export default async function CompanyPage({
       />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <Link href="/companies" className="mb-6 inline-flex text-sm font-semibold text-blue-700 hover:underline">â† Back to Companies</Link>
         <CompanyHero company={company} />
 
         <div className="mt-6">

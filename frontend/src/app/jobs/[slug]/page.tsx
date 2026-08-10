@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import Header from "@/components/layout/Header";
 import Container from "@/components/common/Container";
@@ -100,6 +101,7 @@ export default async function JobDetailsPage({
 
       <section className="py-16">
         <Container>
+          <Link href="/jobs" className="mb-6 inline-flex text-sm font-semibold text-blue-700 hover:underline">â† Back to Jobs</Link>
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="space-y-8 lg:col-span-2">
 

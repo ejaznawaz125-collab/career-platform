@@ -1,15 +1,17 @@
 import Card from "@/components/common/Card";
-import Button from "@/components/common/Button";
 import { BriefcaseBusiness } from "lucide-react";
+import Link from "next/link";
 
 type CategoryCardProps = {
   title: string;
   jobs: string;
+  slug: string;
 };
 
 export default function CategoryCard({
   title,
   jobs,
+  slug,
 }: CategoryCardProps) {
   return (
     <Card>
@@ -25,7 +27,12 @@ export default function CategoryCard({
         {jobs} Jobs Available
       </p>
 
-      <Button text="Browse Jobs" />
+      <Link
+        href={`/jobs?category=${encodeURIComponent(slug)}`}
+        className="inline-flex rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white transition-all duration-300 hover:bg-blue-700"
+      >
+        Browse Jobs
+      </Link>
     </Card>
   );
 }

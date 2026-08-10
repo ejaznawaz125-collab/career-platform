@@ -1,9 +1,7 @@
 import FeaturedCategories from "@/components/home/FeaturedCategories";
-import WhyChooseUs from "@/components/home/WhyChooseUs";
 import StatsSection from "@/components/stats/StatsSection";
 import Footer from "@/components/footer/Footer";
 import TopCompanies from "@/components/company/TopCompanies";
-import CareerResources from "@/components/resources/CareerResources";
 import FeaturedJobs from "@/components/home/FeaturedJobs";
 import JobSearch from "@/components/home/JobSearch";
 import Header from "@/components/layout/Header";
@@ -17,10 +15,8 @@ export default function Home() {
       <JobSearch />
       <FeaturedJobs />
       <StatsSection />
-      <WhyChooseUs />
       <FeaturedCategories />
       <TopCompanies />
-      <CareerResources />
       <Footer />
     </main>
   );

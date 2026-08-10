@@ -1,43 +1,24 @@
 import Container from "@/components/common/Container";
 import SectionTitle from "@/components/common/SectionTitle";
 import CategoryCard from "./CategoryCard";
+import { JobStatus } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
-export default function FeaturedCategories() {
+export default async function FeaturedCategories() {
+  const categoriesWithPublishedJobCounts = await prisma.category.findMany({
+    select: {
+      name: true,
+      slug: true,
+      _count: { select: { jobs: { where: { status: JobStatus.PUBLISHED } } } },
+    },
+    orderBy: { name: "asc" },
+  });
 
-  const categories = [
-    {
-      title: "Warehouse",
-      jobs: "2,450",
-    },
-    {
-      title: "Logistics",
-      jobs: "1,870",
-    },
-    {
-      title: "Information Technology",
-      jobs: "3,920",
-    },
-    {
-      title: "Engineering",
-      jobs: "2,180",
-    },
-    {
-      title: "Healthcare",
-      jobs: "1,640",
-    },
-    {
-      title: "Finance",
-      jobs: "980",
-    },
-    {
-      title: "Manufacturing",
-      jobs: "1,250",
-    },
-    {
-      title: "Hospitality",
-      jobs: "760",
-    },
-  ];
+  const categories = categoriesWithPublishedJobCounts
+    .sort((firstCategory, secondCategory) =>
+      secondCategory._count.jobs - firstCategory._count.jobs
+    )
+    .slice(0, 8);
 
   return (
     <section className="py-24">
@@ -53,9 +34,10 @@ export default function FeaturedCategories() {
 
           {categories.map((category) => (
             <CategoryCard
-              key={category.title}
-              title={category.title}
-              jobs={category.jobs}
+              key={category.slug}
+              title={category.name}
+              slug={category.slug}
+              jobs={String(category._count.jobs)}
             />
           ))}
 

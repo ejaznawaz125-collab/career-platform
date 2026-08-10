@@ -19,12 +19,4 @@ export const NAVIGATION = [
     name: "Companies",
     href: "/companies",
   },
-  {
-    name: "Resources",
-    href: "/resources",
-  },
-  {
-    name: "About",
-    href: "/about",
-  },
 ];

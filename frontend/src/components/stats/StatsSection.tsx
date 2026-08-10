@@ -1,23 +1,26 @@
 import Container from "@/components/common/Container";
 import StatsCard from "./StatsCard";
+import { JobStatus } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
-export default function StatsSection() {
+export default async function StatsSection() {
+  const [jobs, companies, professionals] = await Promise.all([
+    prisma.job.count({ where: { status: JobStatus.PUBLISHED } }),
+    prisma.company.count({ where: { status: "ACTIVE" } }),
+    prisma.candidateProfile.count(),
+  ]);
   const stats = [
     {
-      number: "25,000+",
-      label: "Verified Jobs",
+      number: jobs.toLocaleString(),
+      label: "Published Jobs",
     },
     {
-      number: "8,500+",
-      label: "Companies",
+      number: companies.toLocaleString(),
+      label: "Active Companies",
     },
     {
-      number: "1.2M+",
-      label: "Professionals",
-    },
-    {
-      number: "98%",
-      label: "Success Rate",
+      number: professionals.toLocaleString(),
+      label: "Candidate Profiles",
     },
   ];
 
@@ -26,7 +29,7 @@ export default function StatsSection() {
 
       <Container>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-3">
 
           {stats.map((item) => (
             <StatsCard

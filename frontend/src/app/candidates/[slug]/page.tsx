@@ -11,6 +11,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import Container from "@/components/common/Container";
 import Header from "@/components/layout/Header";
@@ -247,6 +248,7 @@ export default async function CandidatePage({
 
       <section className="py-10">
   <Container>
+        <Link href="/" className="mb-6 inline-flex text-sm font-semibold text-blue-700 hover:underline">â† Back to Home</Link>
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="h-40 bg-gradient-to-r from-slate-950 via-blue-950 to-blue-700" />
 

@@ -5,6 +5,7 @@ import JobsFilters from "@/components/jobs/JobsFilters";
 import JobsGrid from "@/components/jobs/JobsGrid";
 import JobsPagination from "@/components/jobs/JobsPagination";
 import { getJobs } from "@/services/job.service";
+import Link from "next/link";
 
 type JobsPageSearchParams = {
   search?: string;
@@ -42,6 +43,7 @@ export default async function JobsPage({
       <Header />
 
       <section className="mx-auto max-w-7xl px-6 py-16">
+        <nav aria-label="Breadcrumb" className="mb-6 text-sm text-slate-600"><Link href="/" className="font-semibold text-blue-700 hover:underline">Home</Link><span className="mx-2" aria-hidden="true">/</span><span aria-current="page">Jobs</span></nav>
         <h1 className="mb-3 text-4xl font-bold text-slate-900">
           Find Your Dream Job
         </h1>
