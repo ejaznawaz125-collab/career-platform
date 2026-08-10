@@ -6,6 +6,12 @@
   box-sizing: border-box;
 }
 
+.candidate-dashboard,
+.candidate-dashboard * {
+  margin: revert-layer;
+  padding: revert-layer;
+}
+
 html {
   scroll-behavior: smooth;
 }

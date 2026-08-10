@@ -59,7 +59,6 @@ export default function BecomeEmployerButton() {
       }
       loading={loading}
       onClick={becomeEmployer}
-      className="w-full"
     />
   );
 }

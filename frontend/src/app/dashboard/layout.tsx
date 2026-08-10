@@ -25,6 +25,7 @@ export default async function CandidateDashboardLayout({
 
   return (
     <DashboardLayout
+      className="candidate-dashboard"
       sidebar={<DashboardSidebar />}
       header={<DashboardHeader />}
     >

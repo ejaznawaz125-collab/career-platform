@@ -2,15 +2,17 @@ type DashboardLayoutProps = {
   sidebar: React.ReactNode;
   header: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 };
 
 export default function DashboardLayout({
   sidebar,
   header,
   children,
+  className = "",
 }: DashboardLayoutProps) {
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className={`${className} min-h-screen bg-slate-100`}>
       <div className="lg:flex">
 
         <aside className="hidden min-h-screen w-72 bg-white shadow-lg lg:block">
