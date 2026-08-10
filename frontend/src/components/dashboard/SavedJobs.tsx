@@ -1,13 +1,7 @@
+import Link from "next/link";
 import Card from "@/components/common/Card";
 
-const jobs = [
-  "Warehouse Supervisor",
-  "Storekeeper",
-  "Logistics Coordinator",
-  "Inventory Controller",
-];
-
-export default function SavedJobs() {
+export default function SavedJobs({ jobs }: { jobs: Array<{ id: string; job: { title: string; slug: string; company: { name: string } } }> }) {
   return (
     <Card>
       <h2 className="mb-6 text-xl font-bold">
@@ -15,13 +9,17 @@ export default function SavedJobs() {
       </h2>
 
       <div className="space-y-3">
-        {jobs.map((job) => (
-          <div
-            key={job}
+        {jobs.length === 0 ? (
+          <p className="text-sm text-slate-500">No saved jobs yet.</p>
+        ) : jobs.map((savedJob) => (
+          <Link
+            key={savedJob.id}
+            href={`/jobs/${savedJob.job.slug}`}
             className="rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50"
           >
-            {job}
-          </div>
+            <span className="block font-semibold text-slate-900">{savedJob.job.title}</span>
+            <span className="mt-1 block text-sm text-slate-500">{savedJob.job.company.name}</span>
+          </Link>
         ))}
       </div>
     </Card>

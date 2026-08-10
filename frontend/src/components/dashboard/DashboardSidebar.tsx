@@ -54,25 +54,27 @@ export default function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 rounded-2xl bg-white p-6 shadow">
+    <aside className="w-full bg-white p-4 lg:w-64 lg:p-6">
 
-      <h2 className="mb-8 text-2xl font-bold">
+      <h2 className="mb-4 text-xl font-bold lg:mb-8 lg:text-2xl">
         Dashboard
       </h2>
 
-      <nav className="space-y-2">
+      <nav className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible">
 
         {menu.map((item) => {
           const Icon = item.icon;
 
-          const active =
-            pathname === item.href;
+          const active = item.href === "/dashboard"
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition ${
+              aria-current={active ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 transition ${
                 active
                   ? "bg-blue-600 text-white"
                   : "text-slate-600 hover:bg-slate-100"

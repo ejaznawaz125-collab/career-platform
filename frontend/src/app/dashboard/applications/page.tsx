@@ -1,12 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import ApplicationStatusBadge from "@/components/dashboard/ApplicationStatusBadge";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import WithdrawButton from "@/components/dashboard/WithdrawButton";
 import { getUserApplications } from "@/lib/applications";
-import BecomeEmployerButton from "@/components/employer/BecomeEmployerButton";
 import Link from "next/link";
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -23,10 +19,7 @@ export default async function ApplicationsPage() {
   );
 
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <>
       <h1 className="mb-8 text-3xl font-bold">
         My Applications
       </h1>
@@ -78,7 +71,6 @@ export default async function ApplicationsPage() {
       text="View Job"
     />
   </Link>
-<BecomeEmployerButton />
   <WithdrawButton
     applicationId={application.id}
   />
@@ -92,6 +84,6 @@ export default async function ApplicationsPage() {
           ))}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

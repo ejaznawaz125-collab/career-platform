@@ -2,9 +2,6 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -23,10 +20,7 @@ export default async function SavedJobsPage() {
   );
 
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <>
       <h1 className="mb-8 text-3xl font-bold">
         Saved Jobs
       </h1>
@@ -71,6 +65,6 @@ export default async function SavedJobsPage() {
           ))}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

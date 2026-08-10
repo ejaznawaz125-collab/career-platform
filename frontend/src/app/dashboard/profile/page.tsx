@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import Container from "@/components/common/Container";
-import Header from "@/components/layout/Header";
 import ProfileWorkspace from "@/components/profile/ProfileWorkspace";
 
 export default async function CandidateProfilePage() {
@@ -13,11 +11,6 @@ export default async function CandidateProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <Header />
-
-      <section className="py-10">
-        <Container>
           <div className="mx-auto max-w-6xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
@@ -36,8 +29,5 @@ export default async function CandidateProfilePage() {
 
             <ProfileWorkspace />
           </div>
-        </Container>
-      </section>
-    </main>
   );
 }

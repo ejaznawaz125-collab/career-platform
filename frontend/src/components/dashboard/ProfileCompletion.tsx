@@ -1,4 +1,5 @@
 import Card from "@/components/common/Card";
+import Link from "next/link";
 
 export default function ProfileCompletion() {
   return (
@@ -7,13 +8,12 @@ export default function ProfileCompletion() {
         Profile Completion
       </h2>
 
-      <div className="h-4 overflow-hidden rounded-full bg-slate-200">
-        <div className="h-full w-3/4 rounded-full bg-blue-600" />
-      </div>
-
-      <p className="mt-4 text-slate-600">
-        Your profile is 75% complete.
+      <p className="text-slate-600">
+        Add information at your own pace. Profile completion never blocks job browsing or applications.
       </p>
+      <Link href="/dashboard/profile" className="mt-5 inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+        Continue profile
+      </Link>
     </Card>
   );
 }
