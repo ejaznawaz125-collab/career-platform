@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 
-import { auth } from "@/auth";
+import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
 import { prisma } from "@/lib/prisma";
 
 const skillCreateSchema = z.object({
@@ -61,66 +61,14 @@ const skillDeleteSchema = z.object({
 });
 
 async function getAuthenticatedProfileId() {
-  const session = await auth();
-
-  if (!session?.user?.email) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized.",
-        },
-        {
-          status: 401,
-        },
-      ),
-    };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      candidateProfile: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        {
-          status: 404,
-        },
-      ),
-    };
-  }
-
-  if (!user.candidateProfile) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message:
-            "Create your candidate profile before adding skills.",
-        },
-        {
-          status: 404,
-        },
-      ),
-    };
-  }
+  const owner = await getAuthenticatedCandidateOwner();
+  if (owner) return { profileId: owner.profileId };
 
   return {
-    profileId: user.candidateProfile.id,
+    error: NextResponse.json(
+      { success: false, message: "Unauthorized." },
+      { status: 401 },
+    ),
   };
 }
 

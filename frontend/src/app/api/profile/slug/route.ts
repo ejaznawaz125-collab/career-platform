@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 
-import { auth } from "@/auth";
+import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
 import { prisma } from "@/lib/prisma";
 
 const slugSchema = z.object({
@@ -45,9 +45,9 @@ function handleError(error: unknown) {
 }
 
 async function getAuthenticatedProfile() {
-  const session = await auth();
+  const owner = await getAuthenticatedCandidateOwner();
 
-  if (!session?.user?.email) {
+  if (!owner) {
     return {
       error: NextResponse.json(
         {
@@ -61,36 +61,18 @@ async function getAuthenticatedProfile() {
     };
   }
 
-  const user = await prisma.user.findUnique({
+  const profile = await prisma.candidateProfile.findUnique({
     where: {
-      email: session.user.email,
+      id: owner.profileId,
     },
     select: {
-      candidateProfile: {
-        select: {
-          id: true,
-          slug: true,
-          isPublic: true,
-        },
-      },
+      id: true,
+      slug: true,
+      isPublic: true,
     },
   });
 
-  if (!user) {
-    return {
-      error: NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        {
-          status: 404,
-        },
-      ),
-    };
-  }
-
-  if (!user.candidateProfile) {
+  if (!profile) {
     return {
       error: NextResponse.json(
         {
@@ -105,7 +87,7 @@ async function getAuthenticatedProfile() {
   }
 
   return {
-    profile: user.candidateProfile,
+    profile,
   };
 }
 

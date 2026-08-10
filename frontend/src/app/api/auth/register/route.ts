@@ -34,6 +34,9 @@ export async function POST(request: Request) {
     email: data.email,
     password: hashedPassword,
     role: UserRole.USER,
+    candidateProfile: {
+      create: {},
+    },
   },
 });
     return NextResponse.json(

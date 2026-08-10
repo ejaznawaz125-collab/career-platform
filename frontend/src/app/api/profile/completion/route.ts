@@ -2,7 +2,7 @@ import {
   NextResponse,
 } from "next/server";
 
-import { auth } from "@/auth";
+import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
 import { prisma } from "@/lib/prisma";
 
 function hasText(
@@ -15,10 +15,9 @@ function hasText(
 
 export async function GET() {
   try {
-    const session =
-      await auth();
+    const owner = await getAuthenticatedCandidateOwner();
 
-    if (!session?.user?.email) {
+    if (!owner) {
       return NextResponse.json(
         {
           success: false,
@@ -32,14 +31,9 @@ export async function GET() {
     }
 
     const profile =
-      await prisma.candidateProfile.findFirst({
+      await prisma.candidateProfile.findUnique({
         where: {
-          user: {
-            is: {
-              email:
-                session.user.email,
-            },
-          },
+          id: owner.profileId,
         },
         select: {
           id: true,
@@ -52,16 +46,6 @@ export async function GET() {
           experienceLevel: true,
           totalExperience: true,
           highestEducation: true,
-
-          expectedSalary: true,
-          salaryCurrency: true,
-
-          preferredCountry: true,
-          preferredCity: true,
-          preferredJobType: true,
-          preferredWorkMode: true,
-
-          availableForWork: true,
 
           user: {
             select: {
@@ -174,29 +158,6 @@ export async function GET() {
         hasText(
           profile.highestEducation,
         ),
-
-      expectedSalary:
-        profile.expectedSalary !==
-        null,
-
-      salaryCurrency:
-        hasText(
-          profile.salaryCurrency,
-        ),
-
-      preferredLocation:
-        hasText(
-          profile.preferredCountry,
-        ) ||
-        hasText(
-          profile.preferredCity,
-        ),
-
-      preferredJob:
-        profile.preferredJobType !==
-          null ||
-        profile.preferredWorkMode !==
-          null,
 
       skills:
         profile._count.skills > 0,
