@@ -136,23 +136,6 @@ const experienceLevels = [
   { value: "EXECUTIVE", label: "Executive" },
 ];
 
-const jobTypes = [
-  { value: "", label: "Select preferred job type" },
-  { value: "FULL_TIME", label: "Full Time" },
-  { value: "PART_TIME", label: "Part Time" },
-  { value: "CONTRACT", label: "Contract" },
-  { value: "INTERNSHIP", label: "Internship" },
-  { value: "FREELANCE", label: "Freelance" },
-  { value: "TEMPORARY", label: "Temporary" },
-];
-
-const workModes = [
-  { value: "", label: "Select preferred work mode" },
-  { value: "ONSITE", label: "On Site" },
-  { value: "REMOTE", label: "Remote" },
-  { value: "HYBRID", label: "Hybrid" },
-];
-
 const inputClassName =
   "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 
@@ -172,7 +155,6 @@ function nullableNumber(value: string): number | null {
     ? parsedValue
     : null;
 }
-
 function optionalValue(value: string): string | undefined {
   const normalizedValue = value.trim();
 
@@ -632,137 +614,6 @@ export default function CandidateProfileForm() {
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h2 className="text-xl font-bold text-slate-950">
-          Salary and Job Preferences
-        </h2>
-
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <label className={labelClassName}>
-            Current Salary
-            <input
-              type="number"
-              min="0"
-              name="currentSalary"
-              value={formData.currentSalary}
-              onChange={handleChange}
-              className={inputClassName}
-            />
-          </label>
-
-          <label className={labelClassName}>
-            Expected Salary
-            <input
-              type="number"
-              min="0"
-              name="expectedSalary"
-              value={formData.expectedSalary}
-              onChange={handleChange}
-              className={inputClassName}
-            />
-          </label>
-
-          <label className={labelClassName}>
-            Salary Currency
-            <input
-              name="salaryCurrency"
-              maxLength={3}
-              value={formData.salaryCurrency}
-              onChange={handleChange}
-              className={inputClassName}
-            />
-          </label>
-
-          <label className={labelClassName}>
-            Preferred Job Type
-            <select
-              name="preferredJobType"
-              value={formData.preferredJobType}
-              onChange={handleChange}
-              className={inputClassName}
-            >
-              {jobTypes.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={labelClassName}>
-            Preferred Work Mode
-            <select
-              name="preferredWorkMode"
-              value={formData.preferredWorkMode}
-              onChange={handleChange}
-              className={inputClassName}
-            >
-              {workModes.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={labelClassName}>
-            Preferred Country
-            <input
-              name="preferredCountry"
-              value={formData.preferredCountry}
-              onChange={handleChange}
-              className={inputClassName}
-            />
-          </label>
-
-          <label className={labelClassName}>
-            Preferred City
-            <input
-              name="preferredCity"
-              value={formData.preferredCity}
-              onChange={handleChange}
-              className={inputClassName}
-            />
-          </label>
-        </div>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <CheckboxField
-            name="availableForWork"
-            label="Available for work"
-            checked={formData.availableForWork}
-            onChange={handleChange}
-          />
-
-          <CheckboxField
-            name="availableImmediately"
-            label="Available immediately"
-            checked={formData.availableImmediately}
-            onChange={handleChange}
-          />
-
-          <CheckboxField
-            name="openToRemote"
-            label="Open to remote work"
-            checked={formData.openToRemote}
-            onChange={handleChange}
-          />
-
-          <CheckboxField
-            name="isPublic"
-            label="Make profile public"
-            checked={formData.isPublic}
-            onChange={handleChange}
-          />
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="text-xl font-bold text-slate-950">
           Professional Links
         </h2>
 
@@ -808,39 +659,9 @@ export default function CandidateProfileForm() {
           disabled={saving}
           className="rounded-xl bg-blue-600 px-7 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save Profile"}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </form>
-  );
-}
-
-type CheckboxFieldProps = {
-  name: keyof ProfileFormData;
-  label: string;
-  checked: boolean;
-  onChange: (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => void;
-};
-
-function CheckboxField({
-  name,
-  label,
-  checked,
-  onChange,
-}: CheckboxFieldProps) {
-  return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 text-sm font-semibold text-slate-700">
-      <input
-        type="checkbox"
-        name={name}
-        checked={checked}
-        onChange={onChange}
-        className="h-5 w-5 rounded border-slate-300 text-blue-600"
-      />
-
-      <span>{label}</span>
-    </label>
   );
 }

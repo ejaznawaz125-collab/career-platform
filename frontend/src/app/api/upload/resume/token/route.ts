@@ -88,7 +88,10 @@ export async function POST(request: Request) {
         maximumSizeInBytes: RESUME_MAX_FILE_SIZE,
         validUntil: expiresAt.getTime(),
         addRandomSuffix: false,
-        allowOverwrite: false,
+        // The pathname is a server-generated UUID bound to this user's upload
+        // intent. Allowing an idempotent retry prevents a completed client
+        // transfer from becoming permanently stuck before finalization.
+        allowOverwrite: true,
         cacheControlMaxAge: 60,
       });
       return NextResponse.json({ success: true, pathname, token });

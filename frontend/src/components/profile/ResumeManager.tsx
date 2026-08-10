@@ -146,12 +146,23 @@ function TagSelector({
   );
 }
 
-export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest?: number }) {
+export default function ResumeManager({
+  autoFillOnly = false,
+  autoFillRequest = 0,
+  refreshRequest = 0,
+  onResumesChanged,
+}: {
+  autoFillOnly?: boolean;
+  autoFillRequest?: number;
+  refreshRequest?: number;
+  onResumesChanged?: () => void;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadFormRef = useRef<HTMLFormElement>(null);
   const handledAutoFillRequest = useRef(0);
   const [resumes, setResumes] = useState<ResumeRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadSucceeded, setLoadSucceeded] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -167,12 +178,16 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
 
   const loadResumes = useCallback(async () => {
     try {
+      setLoading(true);
+      setLoadSucceeded(false);
+      setError("");
       const response = await fetch("/api/profile/resumes", { cache: "no-store" });
       const data = (await response.json()) as ApiResponse;
       if (!response.ok || !data.success) {
         throw new Error(getMessage(data, "Failed to load resumes."));
       }
       setResumes(data.resumes ?? []);
+      setLoadSucceeded(true);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to load resumes.");
     } finally {
@@ -182,7 +197,7 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
 
   useEffect(() => {
     void loadResumes();
-  }, [loadResumes]);
+  }, [loadResumes, refreshRequest]);
 
   useEffect(() => {
     if (!autoFillRequest || autoFillRequest === handledAutoFillRequest.current) return;
@@ -286,6 +301,7 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
       pendingPathname = null;
       resetUploadForm();
       await loadResumes();
+      onResumesChanged?.();
       if (shouldPrepareImport) setImportResumeId(finalizeData.resume!.id);
     } catch (uploadError) {
       if (pendingPathname) {
@@ -324,6 +340,7 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
       setEditing(null);
       setMessage(getMessage(data, "Resume updated."));
       await loadResumes();
+      onResumesChanged?.();
     } catch (editError) {
       setError(editError instanceof Error ? editError.message : "Failed to update resume.");
     }
@@ -345,6 +362,7 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
       }
       setMessage(getMessage(data, "Resume deleted securely."));
       await loadResumes();
+      onResumesChanged?.();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "Failed to delete resume.");
     } finally {
@@ -357,9 +375,11 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
       <div className="flex items-start gap-3">
         <div className="rounded-2xl bg-blue-50 p-3 text-blue-700"><FileText size={24} /></div>
         <div>
-          <h2 className="text-2xl font-bold text-slate-950">Resumes</h2>
+          <h2 className="text-2xl font-bold text-slate-950">{autoFillOnly ? "Resume Auto-Fill" : "Resumes"}</h2>
           <p className="mt-1 text-sm leading-6 text-slate-600">
-            Store multiple PDF or DOCX resumes securely. Files remain private and downloads require authentication.
+            {autoFillOnly
+              ? "Upload a resume securely, review the extracted suggestions, and choose what to add to your profile."
+              : "Store multiple PDF or DOCX resumes securely. Files remain private and downloads require authentication."}
           </p>
         </div>
       </div>
@@ -414,10 +434,14 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
 
       <ResumeImportReview resumes={resumes} onImported={loadResumes} requestedResumeId={importResumeId} />
 
-      <div className="mt-8">
+      {!autoFillOnly ? <div className="mt-8">
         <h3 className="font-bold text-slate-900">Your resumes</h3>
         {loading ? (
           <p className="mt-4 flex items-center gap-2 text-sm text-slate-500"><LoaderCircle className="animate-spin" size={17} /> Loading resumes…</p>
+        ) : !loadSucceeded ? (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+            Resume records could not be loaded. Resolve the error above and try again.
+          </div>
         ) : resumes.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">No resumes uploaded yet.</div>
         ) : (
@@ -456,7 +480,7 @@ export default function ResumeManager({ autoFillRequest = 0 }: { autoFillRequest
             ))}
           </div>
         )}
-      </div>
+      </div> : null}
     </section>
   );
 }

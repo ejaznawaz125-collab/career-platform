@@ -12,7 +12,8 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import { KeyboardEvent, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import CandidateProfileForm from "./CandidateProfileForm";
 import EducationManager from "./EducationManager";
@@ -29,7 +30,7 @@ const sections = [
   {
     id: "basic",
     label: "Basic Information",
-    description: "Personal details, career preferences, and professional links.",
+    description: "Personal details, professional summary, and profile links.",
     icon: UserRound,
     component: CandidateProfileForm,
   },
@@ -98,6 +99,10 @@ const sections = [
 }>;
 
 type SectionId = (typeof sections)[number]["id"];
+
+function isSectionId(value: string | null): value is SectionId {
+  return sections.some((section) => section.id === value);
+}
 
 function ProfileNavigation({
   activeSection,
@@ -178,14 +183,35 @@ function ProfileNavigation({
 }
 
 export default function ProfileWorkspace() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedSection = searchParams.get("section");
+  const initialSection = isSectionId(requestedSection) ? requestedSection : "basic";
   const [activeSection, setActiveSection] =
-    useState<SectionId>("basic");
+    useState<SectionId>(initialSection);
   const [visitedSections, setVisitedSections] = useState<Set<SectionId>>(
-    () => new Set(["basic"]),
+    () => new Set([initialSection]),
   );
   const [resumeAutoFillRequest, setResumeAutoFillRequest] = useState(0);
+  const [resumeRefreshRequest, setResumeRefreshRequest] = useState(0);
+  const [showResumeAutoFill, setShowResumeAutoFill] = useState(false);
   const desktopButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const mobileButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    const nextSection = isSectionId(requestedSection)
+      ? requestedSection
+      : "basic";
+
+    setActiveSection(nextSection);
+    setVisitedSections((current) => {
+      if (current.has(nextSection)) return current;
+      const next = new Set(current);
+      next.add(nextSection);
+      return next;
+    });
+  }, [requestedSection]);
 
   function selectSection(section: SectionId) {
     setActiveSection(section);
@@ -198,12 +224,25 @@ export default function ProfileWorkspace() {
       next.add(section);
       return next;
     });
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (section === "basic") {
+      nextParams.delete("section");
+    } else {
+      nextParams.set("section", section);
+    }
+    const query = nextParams.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
   function startResumeAutoFill() {
+    setShowResumeAutoFill(true);
     setResumeAutoFillRequest((current) => current + 1);
-    selectSection("resumes");
   }
+
+  const notifyResumesChanged = useCallback(() => {
+    setResumeRefreshRequest((current) => current + 1);
+  }, []);
 
   const activeSectionDetails = sections.find(
     (section) => section.id === activeSection,
@@ -278,11 +317,24 @@ export default function ProfileWorkspace() {
                         <button type="button" onClick={startResumeAutoFill} className="shrink-0 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">Upload Resume &amp; Auto-Fill</button>
                       </div>
                     </section>
+                    {showResumeAutoFill ? (
+                      <div className="mb-6">
+                        <ResumeManager
+                          autoFillOnly
+                          autoFillRequest={resumeAutoFillRequest}
+                          refreshRequest={resumeRefreshRequest}
+                          onResumesChanged={notifyResumesChanged}
+                        />
+                      </div>
+                    ) : null}
                     <div className="mb-6 flex items-center gap-4" aria-hidden="true"><span className="h-px flex-1 bg-slate-200" /><span className="text-xs font-semibold uppercase tracking-wide text-slate-500">or complete your information manually</span><span className="h-px flex-1 bg-slate-200" /></div>
                     <SectionComponent />
                   </>
                 ) : section.id === "resumes" ? (
-                  <ResumeManager autoFillRequest={resumeAutoFillRequest} />
+                  <ResumeManager
+                    refreshRequest={resumeRefreshRequest}
+                    onResumesChanged={notifyResumesChanged}
+                  />
                 ) : (
                   <SectionComponent />
                 ) : null}

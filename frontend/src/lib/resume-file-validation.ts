@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import type { Entry, ZipFile } from "yauzl";
@@ -49,9 +51,15 @@ async function validatePdf(buffer: Buffer): Promise<void> {
     throw new Error("ENCRYPTED_PDF");
   }
 
-  const { getDocument, PasswordResponses } = await import(
+  const { getDocument, GlobalWorkerOptions, PasswordResponses } = await import(
     "pdfjs-dist/legacy/build/pdf.mjs"
   );
+  GlobalWorkerOptions.workerSrc = pathToFileURL(
+    resolve(
+      process.cwd(),
+      "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    ),
+  ).href;
   const loadingTask = getDocument({
     data: Uint8Array.from(buffer),
     disableAutoFetch: true,
@@ -84,11 +92,19 @@ async function validatePdf(buffer: Buffer): Promise<void> {
       page.cleanup();
     }
   } catch (error) {
+    const passwordCode =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof error.code === "number"
+        ? error.code
+        : null;
+
     if (
       error instanceof Error &&
       (error.name === "PasswordException" ||
-        error.message.includes(String(PasswordResponses.NEED_PASSWORD)) ||
-        error.message.includes(String(PasswordResponses.INCORRECT_PASSWORD)))
+        passwordCode === PasswordResponses.NEED_PASSWORD ||
+        passwordCode === PasswordResponses.INCORRECT_PASSWORD)
     ) {
       throw new Error("ENCRYPTED_PDF");
     }
