@@ -1,4 +1,5 @@
 import mammoth from "mammoth";
+import { getDocumentProxy } from "unpdf";
 
 import { validateManagedResume } from "@/lib/resume-file-validation";
 import { RESUME_EXTRACTOR_VERSION } from "./versions";
@@ -16,10 +17,17 @@ function normalizeText(value: string): string {
 }
 
 async function extractPdf(buffer: Buffer): Promise<string> {
-  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const task = getDocument({ data: Uint8Array.from(buffer), disableAutoFetch: true, disableRange: true, disableStream: true, isEvalSupported: false, useSystemFonts: false, verbosity: 0 });
+  const documentOptions = {
+    disableAutoFetch: true,
+    disableRange: true,
+    disableStream: true,
+    isEvalSupported: false,
+    maxImageSize: 16_777_216,
+    useSystemFonts: false,
+    verbosity: 0,
+  };
+  const document = await getDocumentProxy(Uint8Array.from(buffer), documentOptions);
   try {
-    const document = await task.promise;
     if (document.numPages < 1 || document.numPages > MAX_PAGES) throw new Error("INVALID_PDF_PAGE_COUNT");
     const pages: string[] = [];
     let characters = 0;
@@ -33,7 +41,7 @@ async function extractPdf(buffer: Buffer): Promise<string> {
       page.cleanup();
     }
     return pages.join("\n\n--- Page break ---\n\n");
-  } finally { await task.destroy(); }
+  } finally { await document.loadingTask.destroy(); }
 }
 
 export async function extractResumeBuffer(buffer: Buffer, options: { pathname: string; userId: string; originalName: string; mimeType: string }): Promise<ExtractionResult> {

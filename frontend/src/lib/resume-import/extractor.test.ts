@@ -17,7 +17,7 @@ function pdf(text: string) {
 }
 const path = (extension: "pdf"|"docx") => ({ pathname: `resumes/test-user/00000000-0000-0000-0000-000000000001.${extension}`, userId: "test-user", originalName: `resume.${extension}`, mimeType: RESUME_MIME_TYPES[extension] });
 
-test("PDF text is extracted without rendering", async () => { const result=await extractResumeBuffer(pdf("Aisha Khan Software Engineer TypeScript React Node PostgreSQL cloud architecture product delivery experience@example.com"),path("pdf")); assert.equal(result.status,"READY"); if(result.status==="READY") assert.match(result.text,/Aisha Khan/); });
+test("PDF text is extracted without canvas or DOMMatrix globals", async () => { assert.equal("DOMMatrix" in globalThis, false); const result=await extractResumeBuffer(pdf("Aisha Khan Software Engineer TypeScript React Node PostgreSQL cloud architecture product delivery experience@example.com"),path("pdf")); assert.equal(result.status,"READY"); if(result.status==="READY") assert.match(result.text,/Aisha Khan/); });
 test("low-text PDF returns the image-only state", async () => { const result=await extractResumeBuffer(pdf("Short"),path("pdf")); assert.deepEqual(result,{status:"IMAGE_ONLY_OR_LOW_TEXT"}); });
 test("DOCX raw text is extracted", async () => {
   const content=Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
