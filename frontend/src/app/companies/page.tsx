@@ -5,12 +5,14 @@ import CompanySearch from "@/components/companies/CompanySearch";
 import CompanyFilters from "@/components/companies/CompanyFilters";
 import Header from "@/components/layout/Header";
 import Link from "next/link";
+import { normalizeCompanyIndustryFilter } from "@/lib/company-industries";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompaniesPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
+export default async function CompaniesPage({ searchParams }: { searchParams: Promise<{ search?: string; industry?: string }> }) {
   const params = await searchParams;
-  const { companies } = await getCompanies({ search: params.search });
+  const industry = normalizeCompanyIndustryFilter(params.industry);
+  const { companies } = await getCompanies({ search: params.search, industry });
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -27,10 +29,10 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
         </p>
       </div>
 
-      <CompanySearch defaultValue={params.search} />
+      <CompanySearch defaultValue={params.search} industry={industry} />
 
       <div className="mt-8">
-        <CompanyFilters />
+        <CompanyFilters selectedIndustry={industry} search={params.search} />
       </div>
 
       <div className="mt-10">

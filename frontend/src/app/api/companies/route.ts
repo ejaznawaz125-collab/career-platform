@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCompanies } from "@/services/company.service";
+import { normalizeCompanyIndustryFilter } from "@/lib/company-industries";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,6 +9,7 @@ export async function GET(request: NextRequest) {
 
     const result = await getCompanies({
       search: searchParams.get("search") ?? undefined,
+      industry: normalizeCompanyIndustryFilter(searchParams.get("industry") ?? undefined),
       page: Number(searchParams.get("page") ?? "1"),
       limit: Number(searchParams.get("limit") ?? "12"),
     });

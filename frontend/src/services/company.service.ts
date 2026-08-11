@@ -1,6 +1,7 @@
 import { CompanyStatus, JobStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { getDatabaseIndustry, type CompanyIndustryFilter } from "@/lib/company-industries";
 import { getJobs } from "@/services/job.service";
 
 const COMPANY_PUBLIC_SELECT = {
@@ -114,6 +115,7 @@ export async function getCompanyJobs(
 }
 export type GetCompaniesOptions = {
   search?: string;
+  industry?: CompanyIndustryFilter;
   page?: number;
   limit?: number;
 };
@@ -122,6 +124,7 @@ export async function getCompanies(
   options: GetCompaniesOptions = {},
 ) {
   const search = options.search?.trim();
+  const industry = options.industry ? getDatabaseIndustry(options.industry) : undefined;
 
   const page = normalizePositiveInteger(
     options.page,
@@ -140,6 +143,15 @@ export async function getCompanies(
 
   const where: Prisma.CompanyWhereInput = {
     status: CompanyStatus.ACTIVE,
+
+    ...(industry
+      ? {
+          industry: {
+            equals: industry,
+            mode: "insensitive",
+          },
+        }
+      : {}),
 
     ...(search
       ? {
