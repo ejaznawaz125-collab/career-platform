@@ -1,6 +1,4 @@
 import { createHash } from "node:crypto";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import type { Entry, ZipFile } from "yauzl";
@@ -51,30 +49,17 @@ async function validatePdf(buffer: Buffer): Promise<void> {
     throw new Error("ENCRYPTED_PDF");
   }
 
-  const { getDocument, GlobalWorkerOptions, PasswordResponses } = await import(
-    "pdfjs-dist/legacy/build/pdf.mjs"
-  );
-  GlobalWorkerOptions.workerSrc = pathToFileURL(
-    resolve(
-      process.cwd(),
-      "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-    ),
-  ).href;
-  const loadingTask = getDocument({
-    data: Uint8Array.from(buffer),
-    disableAutoFetch: true,
-    disableFontFace: true,
-    disableRange: true,
-    disableStream: true,
-    isEvalSupported: false,
-    useSystemFonts: false,
-    verbosity: 0,
-  });
+  const { EncryptedPDFError, PDFDocument } = await import("pdf-lib");
 
   let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     const document = await Promise.race([
-      loadingTask.promise,
+      PDFDocument.load(buffer, {
+        capNumbers: true,
+        ignoreEncryption: false,
+        throwOnInvalidObject: true,
+        updateMetadata: false,
+      }),
       new Promise<never>((_, reject) => {
         timeout = setTimeout(
           () => reject(new Error("PDF_VALIDATION_TIMEOUT")),
@@ -83,35 +68,29 @@ async function validatePdf(buffer: Buffer): Promise<void> {
       }),
     ]);
 
-    if (document.numPages < 1 || document.numPages > MAX_PDF_PAGES) {
+    const pages = document.getPages();
+    if (pages.length < 1 || pages.length > MAX_PDF_PAGES) {
       throw new Error("INVALID_PDF_PAGE_COUNT");
     }
 
-    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-      const page = await document.getPage(pageNumber);
-      page.cleanup();
+    for (const page of pages) {
+      const { height, width } = page.getSize();
+      if (
+        !Number.isFinite(width) ||
+        !Number.isFinite(height) ||
+        width <= 0 ||
+        height <= 0
+      ) {
+        throw new Error("INVALID_PDF_PAGE_SIZE");
+      }
     }
   } catch (error) {
-    const passwordCode =
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      typeof error.code === "number"
-        ? error.code
-        : null;
-
-    if (
-      error instanceof Error &&
-      (error.name === "PasswordException" ||
-        passwordCode === PasswordResponses.NEED_PASSWORD ||
-        passwordCode === PasswordResponses.INCORRECT_PASSWORD)
-    ) {
+    if (error instanceof EncryptedPDFError) {
       throw new Error("ENCRYPTED_PDF");
     }
     throw error;
   } finally {
     if (timeout) clearTimeout(timeout);
-    await loadingTask.destroy();
   }
 }
 

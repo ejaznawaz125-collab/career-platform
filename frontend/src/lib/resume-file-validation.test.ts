@@ -124,6 +124,9 @@ function validateDocx(buffer: Buffer) {
 }
 
 test("valid PDF is accepted", async () => {
+  assert.equal(typeof globalThis.DOMMatrix, "undefined");
+  assert.equal(typeof globalThis.ImageData, "undefined");
+  assert.equal(typeof globalThis.Path2D, "undefined");
   const result = await validatePdf(createPdf());
   assert.equal(result.extension, "pdf");
   assert.match(result.contentHash, /^[a-f0-9]{64}$/);
