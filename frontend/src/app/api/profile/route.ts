@@ -63,6 +63,19 @@ function getErrorResponse(error: unknown) {
     );
   }
 
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "That username is already in use.",
+      },
+      { status: 409 },
+    );
+  }
+
   console.error("PROFILE_API_ERROR:", error);
 
   return NextResponse.json(
@@ -176,6 +189,7 @@ export async function PUT(
           data: {
             firstName: data.firstName,
             lastName: data.lastName,
+            username: data.username,
             phone: data.phone,
             country: data.country,
             city: data.city,

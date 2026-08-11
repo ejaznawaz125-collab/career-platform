@@ -164,6 +164,8 @@ export const profileSchema = z.object({
       "Last name cannot exceed 50 characters.",
     ),
 
+  username: optionalText(50),
+
   phone: optionalText(30),
 
   country: optionalText(100),

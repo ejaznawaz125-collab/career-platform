@@ -100,6 +100,32 @@ const sections = [
 
 type SectionId = (typeof sections)[number]["id"];
 
+const missingFieldDestinations: Record<
+  string,
+  { section: SectionId; targetId: string }
+> = {
+  firstName: { section: "basic", targetId: "profile-first-name" },
+  lastName: { section: "basic", targetId: "profile-last-name" },
+  username: { section: "basic", targetId: "profile-username" },
+  phone: { section: "basic", targetId: "profile-phone" },
+  image: { section: "photo", targetId: "profile-panel-photo" },
+  location: { section: "basic", targetId: "profile-country" },
+  address: { section: "basic", targetId: "profile-address" },
+  linkedin: { section: "basic", targetId: "profile-linkedin" },
+  headline: { section: "basic", targetId: "profile-headline" },
+  summary: { section: "basic", targetId: "profile-summary" },
+  currentJobTitle: { section: "basic", targetId: "profile-current-job-title" },
+  experienceLevel: { section: "basic", targetId: "profile-experience-level" },
+  totalExperience: { section: "basic", targetId: "profile-total-experience" },
+  highestEducation: { section: "basic", targetId: "profile-highest-education" },
+  skills: { section: "skills", targetId: "profile-panel-skills" },
+  education: { section: "education", targetId: "profile-panel-education" },
+  experience: { section: "experience", targetId: "profile-panel-experience" },
+  languages: { section: "languages", targetId: "profile-panel-languages" },
+  resume: { section: "resumes", targetId: "profile-panel-resumes" },
+  portfolio: { section: "portfolio", targetId: "profile-panel-portfolio" },
+};
+
 function isSectionId(value: string | null): value is SectionId {
   return sections.some((section) => section.id === value);
 }
@@ -196,6 +222,9 @@ export default function ProfileWorkspace() {
   const [resumeAutoFillRequest, setResumeAutoFillRequest] = useState(0);
   const [resumeRefreshRequest, setResumeRefreshRequest] = useState(0);
   const [showResumeAutoFill, setShowResumeAutoFill] = useState(false);
+  const [pendingDestination, setPendingDestination] = useState<{
+    targetId: string;
+  } | null>(null);
   const desktopButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const mobileButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -235,6 +264,32 @@ export default function ProfileWorkspace() {
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
+  function navigateToMissingField(field: string) {
+    const destination = missingFieldDestinations[field];
+    if (!destination) return;
+
+    if (destination.section !== activeSection) {
+      selectSection(destination.section);
+    }
+    setPendingDestination({
+      targetId: destination.targetId,
+    });
+  }
+
+  useEffect(() => {
+    if (!pendingDestination) return;
+
+    const frame = requestAnimationFrame(() => {
+      const target = document.getElementById(pendingDestination.targetId);
+      if (!target) return;
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.focus({ preventScroll: true });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeSection, pendingDestination]);
+
   function startResumeAutoFill() {
     setShowResumeAutoFill(true);
     setResumeAutoFillRequest((current) => current + 1);
@@ -272,7 +327,9 @@ export default function ProfileWorkspace() {
             />
           </div>
 
-          <ProfileCompletionCard />
+          <ProfileCompletionCard
+            onMissingFieldSelect={navigateToMissingField}
+          />
         </aside>
 
         <section
@@ -303,6 +360,7 @@ export default function ProfileWorkspace() {
                 aria-label={section.label}
                 hidden={!isActive}
                 tabIndex={0}
+                className="scroll-mt-24 focus:outline-none focus:ring-4 focus:ring-blue-100"
               >
                 {visitedSections.has(section.id) ? section.id === "basic" ? (
                   <>

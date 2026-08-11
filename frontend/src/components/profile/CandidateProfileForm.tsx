@@ -11,6 +11,7 @@ import {
 type ProfileFormData = {
   firstName: string;
   lastName: string;
+  username: string;
   phone: string;
   country: string;
   city: string;
@@ -51,6 +52,7 @@ type ProfileApiResponse = {
   user?: {
     firstName?: string | null;
     lastName?: string | null;
+    username?: string | null;
     phone?: string | null;
     country?: string | null;
     city?: string | null;
@@ -91,6 +93,7 @@ type ProfileApiResponse = {
 const initialFormData: ProfileFormData = {
   firstName: "",
   lastName: "",
+  username: "",
   phone: "",
   country: "",
   city: "",
@@ -196,6 +199,7 @@ export default function CandidateProfileForm() {
       setFormData({
         firstName: user?.firstName ?? "",
         lastName: user?.lastName ?? "",
+        username: user?.username ?? "",
         phone: user?.phone ?? "",
         country: user?.country ?? "",
         city: user?.city ?? "",
@@ -317,6 +321,7 @@ export default function CandidateProfileForm() {
       const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
+        username: optionalValue(formData.username),
 
         phone: optionalValue(formData.phone),
         country: optionalValue(formData.country),
@@ -468,6 +473,7 @@ export default function CandidateProfileForm() {
             First Name
             <input
               required
+              id="profile-first-name"
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
@@ -479,6 +485,7 @@ export default function CandidateProfileForm() {
             Last Name
             <input
               required
+              id="profile-last-name"
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
@@ -487,8 +494,22 @@ export default function CandidateProfileForm() {
           </label>
 
           <label className={labelClassName}>
+            Username
+            <input
+              id="profile-username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              minLength={2}
+              maxLength={50}
+              className={inputClassName}
+            />
+          </label>
+
+          <label className={labelClassName}>
             Phone
             <input
+              id="profile-phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -499,6 +520,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Country
             <input
+              id="profile-country"
               name="country"
               value={formData.country}
               onChange={handleChange}
@@ -509,6 +531,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             City
             <input
+              id="profile-city"
               name="city"
               value={formData.city}
               onChange={handleChange}
@@ -519,6 +542,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Address
             <input
+              id="profile-address"
               name="address"
               value={formData.address}
               onChange={handleChange}
@@ -537,6 +561,7 @@ export default function CandidateProfileForm() {
           <label className={`${labelClassName} sm:col-span-2`}>
             Professional Headline
             <input
+              id="profile-headline"
               name="headline"
               value={formData.headline}
               onChange={handleChange}
@@ -548,6 +573,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Current Job Title
             <input
+              id="profile-current-job-title"
               name="currentJobTitle"
               value={formData.currentJobTitle}
               onChange={handleChange}
@@ -558,6 +584,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Experience Level
             <select
+              id="profile-experience-level"
               name="experienceLevel"
               value={formData.experienceLevel}
               onChange={handleChange}
@@ -577,6 +604,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Total Experience
             <input
+              id="profile-total-experience"
               type="number"
               min="0"
               max="99.99"
@@ -591,6 +619,7 @@ export default function CandidateProfileForm() {
           <label className={labelClassName}>
             Highest Education
             <input
+              id="profile-highest-education"
               name="highestEducation"
               value={formData.highestEducation}
               onChange={handleChange}
@@ -602,6 +631,7 @@ export default function CandidateProfileForm() {
           <label className={`${labelClassName} sm:col-span-2`}>
             Professional Summary
             <textarea
+              id="profile-summary"
               name="summary"
               rows={7}
               value={formData.summary}
@@ -622,6 +652,7 @@ export default function CandidateProfileForm() {
             LinkedIn URL
             <input
               type="url"
+              id="profile-linkedin"
               name="linkedinUrl"
               value={formData.linkedinUrl}
               onChange={handleChange}

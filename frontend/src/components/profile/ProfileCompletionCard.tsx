@@ -13,7 +13,11 @@ type CompletionResponse = {
   };
 };
 
-export default function ProfileCompletionCard() {
+export default function ProfileCompletionCard({
+  onMissingFieldSelect,
+}: {
+  onMissingFieldSelect: (field: string) => void;
+}) {
   const [loading, setLoading] = useState(true);
 
   const [data, setData] =
@@ -93,7 +97,14 @@ export default function ProfileCompletionCard() {
               {completion.missingFields.map(
                 (field) => (
                   <li key={field}>
-                    {field}
+                    <button
+                      type="button"
+                      onClick={() => onMissingFieldSelect(field)}
+                      className="rounded-sm text-left text-blue-700 underline decoration-blue-300 underline-offset-2 transition hover:text-blue-900 hover:decoration-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      aria-label={`Go to ${field.replace(/([A-Z])/g, " $1").toLowerCase()} field`}
+                    >
+                      {field.replace(/([A-Z])/g, " $1").toLowerCase()}
+                    </button>
                   </li>
                 ),
               )}
