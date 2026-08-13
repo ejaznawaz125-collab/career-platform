@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import SaveJobButton from "@/components/jobs/SaveJobButton";
 
 import { getSavedJobs } from "@/lib/saved-jobs";
 
@@ -52,13 +53,15 @@ export default async function SavedJobsPage() {
                   </p>
                 </div>
 
-                <Link
-                  href={`/jobs/${savedJob.job.slug}`}
-                >
-                  <Button
-                    text="View Job"
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href={`/jobs/${savedJob.job.slug}`}>
+                    <Button text="View Job" className="w-full" />
+                  </Link>
+                  <SaveJobButton
+                    jobId={savedJob.job.id}
+                    initiallySaved
                   />
-                </Link>
+                </div>
 
               </div>
             </Card>

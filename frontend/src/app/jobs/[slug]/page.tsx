@@ -73,6 +73,17 @@ export default async function JobDetailsPage({
         select: { id: true },
       })
     : null;
+  const existingSavedJob = candidate
+    ? await prisma.savedJob.findUnique({
+        where: {
+          userId_jobId: {
+            userId: candidate.userId,
+            jobId: job.id,
+          },
+        },
+        select: { id: true },
+      })
+    : null;
 
   const relatedJobsData = await getRelatedJobs(
     job.id,
@@ -176,6 +187,7 @@ export default async function JobDetailsPage({
               <JobSidebar
                 job={job}
                 initiallyApplied={Boolean(existingApplication)}
+                initiallySaved={Boolean(existingSavedJob)}
               />
             </div>
           </div>

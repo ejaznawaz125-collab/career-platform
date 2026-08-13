@@ -4,6 +4,9 @@ export async function getSavedJobs(userId: string) {
   return prisma.savedJob.findMany({
     where: {
       userId,
+      job: {
+        status: "PUBLISHED",
+      },
     },
 
     include: {
