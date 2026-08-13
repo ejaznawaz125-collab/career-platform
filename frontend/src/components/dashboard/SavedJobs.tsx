@@ -15,7 +15,7 @@ export default function SavedJobs({ jobs }: { jobs: Array<{ id: string; job: { t
           <Link
             key={savedJob.id}
             href={`/jobs/${savedJob.job.slug}`}
-            className="rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50"
+            className="block w-full rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
           >
             <span className="block font-semibold text-slate-900">{savedJob.job.title}</span>
             <span className="mt-1 block text-sm text-slate-500">{savedJob.job.company.name}</span>
