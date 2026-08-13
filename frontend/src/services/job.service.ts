@@ -409,6 +409,7 @@ export async function getJobBySlug(
   return prisma.job.findUnique({
     where: {
       slug,
+      status: "PUBLISHED",
     },
     include: {
       company: true,

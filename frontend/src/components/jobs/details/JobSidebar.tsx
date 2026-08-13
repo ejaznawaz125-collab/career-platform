@@ -18,10 +18,12 @@ type JobSidebarProps = {
       category: true;
     };
   }>;
+  initiallyApplied?: boolean;
 };
 
 export default function JobSidebar({
   job,
+  initiallyApplied = false,
 }: JobSidebarProps) {
   return (
     <div className="sticky top-24 space-y-6">
@@ -32,7 +34,10 @@ export default function JobSidebar({
           Apply Now
         </h2>
 
-        <ApplyButton jobId={job.id} />
+        <ApplyButton
+          jobId={job.id}
+          initiallyApplied={initiallyApplied}
+        />
 
         <div className="mt-4">
           <SaveJobButton jobId={job.id} />

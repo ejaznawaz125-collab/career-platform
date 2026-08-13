@@ -1,5 +1,7 @@
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -26,6 +28,19 @@ export async function POST(
       );
     }
 
+    const candidate = await getAuthenticatedCandidateOwner();
+
+    if (!candidate) {
+      return NextResponse.json(
+        {
+          message: "Only candidate accounts can apply for jobs.",
+        },
+        {
+          status: 403,
+        },
+      );
+    }
+
     const { jobId } = await params;
 
     const job = await prisma.job.findUnique({
@@ -49,11 +64,22 @@ export async function POST(
       );
     }
 
+    if (job.status !== "PUBLISHED") {
+      return NextResponse.json(
+        {
+          message: "This job is not accepting applications.",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
     const alreadyApplied =
       await prisma.application.findUnique({
         where: {
           userId_jobId: {
-            userId: session.user.id,
+            userId: candidate.userId,
             jobId,
           },
         },
@@ -73,7 +99,7 @@ export async function POST(
     const application =
       await prisma.application.create({
         data: {
-          userId: session.user.id,
+          userId: candidate.userId,
           jobId,
         },
       });
@@ -85,7 +111,21 @@ export async function POST(
       }
     );
   } catch (error) {
-    console.error(error);
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        {
+          message: "You have already applied.",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
+    console.error("JOB_APPLICATION_CREATE_ERROR:", error);
 
     return NextResponse.json(
       {

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
+import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
+import { prisma } from "@/lib/prisma";
 import Header from "@/components/layout/Header";
 import Container from "@/components/common/Container";
 
@@ -58,6 +60,19 @@ export default async function JobDetailsPage({
   if (!job) {
     notFound();
   }
+
+  const candidate = await getAuthenticatedCandidateOwner();
+  const existingApplication = candidate
+    ? await prisma.application.findUnique({
+        where: {
+          userId_jobId: {
+            userId: candidate.userId,
+            jobId: job.id,
+          },
+        },
+        select: { id: true },
+      })
+    : null;
 
   const relatedJobsData = await getRelatedJobs(
     job.id,
@@ -158,7 +173,10 @@ export default async function JobDetailsPage({
             </div>
 
             <div className="space-y-6">
-              <JobSidebar job={job} />
+              <JobSidebar
+                job={job}
+                initiallyApplied={Boolean(existingApplication)}
+              />
             </div>
           </div>
         </Container>
