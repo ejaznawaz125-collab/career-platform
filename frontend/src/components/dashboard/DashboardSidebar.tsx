@@ -10,6 +10,7 @@ import {
   Briefcase,
   Bookmark,
   Settings,
+  Building2,
 } from "lucide-react";
 
 const menu = [
@@ -50,8 +51,16 @@ const menu = [
   },
 ];
 
-export default function DashboardSidebar() {
+const employerMenu = [
+  { title: "Dashboard", href: "/employer", icon: LayoutDashboard },
+  { title: "Company Profile", href: "/employer/company", icon: Building2 },
+  { title: "My Jobs", href: "/employer/jobs", icon: Briefcase },
+  { title: "Post a Job", href: "/employer/jobs/create", icon: FileText },
+];
+
+export default function DashboardSidebar({ variant = "candidate" }: { variant?: "candidate" | "employer" }) {
   const pathname = usePathname();
+  const items = variant === "employer" ? employerMenu : menu;
 
   return (
     <aside className="w-full bg-white p-4 lg:w-64 lg:p-6">
@@ -62,12 +71,14 @@ export default function DashboardSidebar() {
 
       <nav className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible">
 
-        {menu.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
 
-          const active = item.href === "/dashboard"
+          const active = item.href === "/dashboard" || item.href === "/employer"
             ? pathname === item.href
-            : pathname.startsWith(item.href);
+            : item.href === "/employer/jobs"
+              ? pathname.startsWith(item.href) && !pathname.startsWith("/employer/jobs/create")
+              : pathname.startsWith(item.href);
 
           return (
             <Link

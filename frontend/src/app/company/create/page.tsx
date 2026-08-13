@@ -1,9 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EmployerShell from "@/components/employer/EmployerShell";
+import { prisma } from "@/lib/prisma";
 
 import CreateCompanyForm from "@/components/company/CreateCompanyForm";
 
@@ -18,11 +17,11 @@ export default async function CreateCompanyPage() {
     redirect("/dashboard");
   }
 
+  const existingCompany = await prisma.company.findFirst({ where: { ownerId: session.user.id }, select: { id: true } });
+  if (existingCompany) redirect("/employer/company");
+
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <EmployerShell name={session.user.name ?? "Employer"}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-900">
@@ -36,6 +35,6 @@ export default async function CreateCompanyPage() {
 
         <CreateCompanyForm />
       </div>
-    </DashboardLayout>
+    </EmployerShell>
   );
 }

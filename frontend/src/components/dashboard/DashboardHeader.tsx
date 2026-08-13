@@ -14,13 +14,22 @@ const breadcrumbLabels: Record<string, string> = {
   "/dashboard/settings": "Settings",
 };
 
-export default function DashboardHeader() {
+type DashboardHeaderProps = {
+  name?: string;
+  role?: "Candidate" | "Employer";
+  dashboardHref?: string;
+};
+
+export default function DashboardHeader({
+  name: serverName,
+  role = "Candidate",
+  dashboardHref = "/dashboard",
+}: DashboardHeaderProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
-  const name = session?.user?.name || "User";
-  const role = "Candidate";
+  const name = serverName || session?.user?.name || "User";
   const currentLabel = breadcrumbLabels[pathname];
 
   function goBack() {
@@ -40,7 +49,7 @@ export default function DashboardHeader() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(dashboardHref);
   }
 
   return (
@@ -48,7 +57,7 @@ export default function DashboardHeader() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0">
           <nav aria-label="Dashboard breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <Link href="/dashboard" className="font-semibold text-blue-700 hover:underline">Dashboard</Link>
+            <Link href={dashboardHref} className="font-semibold text-blue-700 hover:underline">Dashboard</Link>
             {currentLabel ? <><span aria-hidden="true">/</span><span aria-current="page">{currentLabel}</span></> : null}
           </nav>
 

@@ -4,9 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EmployerShell from "@/components/employer/EmployerShell";
 import DeleteJobButton from "@/components/employer/DeleteJobButton";
 export default async function EmployerJobsPage() {
   const session = await auth();
@@ -37,10 +35,7 @@ export default async function EmployerJobsPage() {
   }
 
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <EmployerShell name={session.user.name ?? "Employer"}>
       <div className="space-y-8">
 
         <div className="flex items-center justify-between">
@@ -241,6 +236,6 @@ export default async function EmployerJobsPage() {
 
       </div>
 
-    </DashboardLayout>
+    </EmployerShell>
   );
 }

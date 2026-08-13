@@ -27,7 +27,7 @@ export default async function CandidateDashboardLayout({
     <DashboardLayout
       className="candidate-dashboard"
       sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
+      header={<DashboardHeader name={session.user.name ?? "Candidate"} />}
     >
       {children}
     </DashboardLayout>

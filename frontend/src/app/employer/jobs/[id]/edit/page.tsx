@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EmployerShell from "@/components/employer/EmployerShell";
 
 import EditJobForm from "@/components/employer/EditJobForm";
 
@@ -58,10 +56,7 @@ export default async function EditJobPage({
   });
 
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <EmployerShell name={session.user.name ?? "Employer"}>
       <div className="space-y-8">
 
         <div className="flex items-center justify-between">
@@ -102,6 +97,6 @@ export default async function EditJobPage({
         />
 
       </div>
-    </DashboardLayout>
+    </EmployerShell>
   );
 }

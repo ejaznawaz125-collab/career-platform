@@ -8,6 +8,8 @@ export default function CreateCompanyForm() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -37,6 +39,8 @@ export default function CreateCompanyForm() {
 
     try {
       setLoading(true);
+      setMessage("");
+      setError("");
 
       const response = await fetch(
         "/api/company/create",
@@ -52,16 +56,16 @@ export default function CreateCompanyForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Something went wrong.");
+        setError(data.message || "Something went wrong.");
         return;
       }
 
-      alert("Company created successfully.");
-
+      setMessage("Company created successfully.");
       router.push("/employer");
+      router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Unable to create company.");
+      setError("Unable to create company.");
     } finally {
       setLoading(false);
     }
@@ -200,6 +204,8 @@ export default function CreateCompanyForm() {
           loading={loading}
         />
       </div>
+      {message ? <p role="status" className="mt-4 text-sm text-green-700">{message}</p> : null}
+      {error ? <p role="alert" className="mt-4 text-sm text-red-700">{error}</p> : null}
     </form>
   );
 }

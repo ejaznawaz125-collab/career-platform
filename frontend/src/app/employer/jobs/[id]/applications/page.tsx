@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import ApplicationStatusSelect from "@/components/employer/ApplicationStatusSelect";
+import EmployerShell from "@/components/employer/EmployerShell";
 import { prisma } from "@/lib/prisma";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -33,7 +34,8 @@ export default async function EmployerJobApplicationsPage({ params }: PageProps)
   if (!job) notFound();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <EmployerShell name={session.user.name ?? "Employer"}>
+    <main className="mx-auto max-w-5xl">
       <Link href="/employer/jobs" className="text-sm font-semibold text-blue-700 hover:underline">← Back to My Jobs</Link>
       <h1 className="mt-5 text-3xl font-bold text-slate-950">Applicants for {job.title}</h1>
       <p className="mt-2 text-slate-600">Review candidates and update their persisted application status.</p>
@@ -54,5 +56,6 @@ export default async function EmployerJobApplicationsPage({ params }: PageProps)
         </div>
       )}
     </main>
+    </EmployerShell>
   );
 }

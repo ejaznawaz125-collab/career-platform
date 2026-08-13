@@ -1,9 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EmployerShell from "@/components/employer/EmployerShell";
 
 import { prisma } from "@/lib/prisma";
 
@@ -29,10 +27,7 @@ export default async function EmployerDashboardPage() {
   }
 
   return (
-    <DashboardLayout
-      sidebar={<DashboardSidebar />}
-      header={<DashboardHeader />}
-    >
+    <EmployerShell name={session.user.name ?? "Employer"}>
       <div className="space-y-8">
 
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -92,6 +87,6 @@ export default async function EmployerDashboardPage() {
         </div>
 
       </div>
-    </DashboardLayout>
+    </EmployerShell>
   );
 }

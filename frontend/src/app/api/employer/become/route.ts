@@ -36,6 +36,7 @@ export async function POST() {
     if (user.role === "EMPLOYER") {
       return NextResponse.json({
         success: true,
+        role: "EMPLOYER",
       });
     }
 
@@ -50,6 +51,7 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
+      role: "EMPLOYER",
     });
   } catch (error) {
     console.error(error);

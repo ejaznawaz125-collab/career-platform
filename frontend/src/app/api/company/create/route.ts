@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { CompanyStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { CompanySize } from "@prisma/client";
+import { companyProfileSchema, nullable } from "@/lib/company-profile";
 
 function generateSlug(name: string) {
   return name
@@ -75,28 +76,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const parsed = companyProfileSchema.safeParse(await request.json().catch(() => null));
 
-    const {
-      name,
-      website,
-      industry,
-      country,
-      city,
-      description,
-      companySize,
-    } = body;
-
-    if (!name || !companySize) {
+    if (!parsed.success) {
       return NextResponse.json(
         {
-          message: "Company name and company size are required.",
+          message: parsed.error.issues[0]?.message ?? "Invalid company details.",
         },
         {
           status: 400,
         }
       );
     }
+
+    const { name, companySize } = parsed.data;
 
     let slug = generateSlug(name);
 
@@ -117,12 +110,17 @@ export async function POST(request: Request) {
         ownerId: user.id,
         name,
         slug,
-        website: website || null,
-        industry: industry || null,
-        country: country || null,
-        city: city || null,
-        description: description || null,
-        companySize: companySize as CompanySize,
+        website: nullable(parsed.data.website),
+        industry: nullable(parsed.data.industry),
+        country: nullable(parsed.data.country),
+        city: nullable(parsed.data.city),
+        description: nullable(parsed.data.description),
+        tagline: nullable(parsed.data.tagline),
+        email: nullable(parsed.data.email),
+        phone: nullable(parsed.data.phone),
+        address: nullable(parsed.data.address),
+        companySize,
+        status: CompanyStatus.ACTIVE,
       },
     });
 
