@@ -1,17 +1,11 @@
-type ApplicationStatus =
-  | "APPLIED"
-  | "UNDER_REVIEW"
-  | "SHORTLISTED"
-  | "INTERVIEW"
-  | "REJECTED"
-  | "HIRED";
+import type { ApplicationStatus } from "@prisma/client";
 
 type Props = {
-  status: ApplicationStatus | string;
+  status: ApplicationStatus;
 };
 
 const statusStyles: Record<
-  string,
+  ApplicationStatus,
   {
     label: string;
     className: string;
@@ -23,7 +17,7 @@ const statusStyles: Record<
       "bg-blue-100 text-blue-700",
   },
 
-  UNDER_REVIEW: {
+  REVIEWING: {
     label: "Under Review",
     className:
       "bg-yellow-100 text-yellow-700",
@@ -41,6 +35,11 @@ const statusStyles: Record<
       "bg-purple-100 text-purple-700",
   },
 
+  OFFERED: {
+    label: "Offered",
+    className: "bg-cyan-100 text-cyan-700",
+  },
+
   REJECTED: {
     label: "Rejected",
     className:
@@ -52,17 +51,17 @@ const statusStyles: Record<
     className:
       "bg-emerald-100 text-emerald-700",
   },
+
+  WITHDRAWN: {
+    label: "Withdrawn",
+    className: "bg-slate-100 text-slate-700",
+  },
 };
 
 export default function ApplicationStatusBadge({
   status,
 }: Props) {
-  const current =
-    statusStyles[status] ?? {
-      label: status,
-      className:
-        "bg-slate-100 text-slate-700",
-    };
+  const current = statusStyles[status];
 
   return (
     <span

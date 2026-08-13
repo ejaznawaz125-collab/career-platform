@@ -209,6 +209,13 @@ export default async function EmployerJobsPage() {
         <div className="flex justify-end gap-3">
 
           <Link
+            href={`/employer/jobs/${job.id}/applications`}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Applicants
+          </Link>
+
+          <Link
             href={`/employer/jobs/${job.id}/edit`}
             className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
           >
