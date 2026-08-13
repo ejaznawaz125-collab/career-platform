@@ -41,6 +41,7 @@ export default function EditJobForm({
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     title: job.title,
@@ -81,6 +82,7 @@ export default function EditJobForm({
     try {
 
       setLoading(true);
+      setError("");
 
       const response = await fetch(
         `/api/employer/jobs/${job.id}`,
@@ -96,11 +98,9 @@ export default function EditJobForm({
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message);
+        setError(data.message ?? "Unable to update job.");
         return;
       }
-
-      alert("Job updated successfully.");
 
       router.push("/employer/jobs");
       router.refresh();
@@ -109,7 +109,7 @@ export default function EditJobForm({
 
       console.error(error);
 
-      alert("Something went wrong.");
+      setError("Something went wrong.");
 
     } finally {
 
@@ -372,6 +372,7 @@ export default function EditJobForm({
 
       </div>
 
+      {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
       <Button
         type="submit"
         text="Update Job"

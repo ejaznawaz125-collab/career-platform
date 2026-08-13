@@ -13,6 +13,7 @@ export default function DeleteJobButton({
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleDelete() {
     const confirmed = window.confirm(
@@ -23,6 +24,7 @@ export default function DeleteJobButton({
 
     try {
       setLoading(true);
+      setError("");
 
       const response = await fetch(
         `/api/employer/jobs/${jobId}`,
@@ -34,23 +36,22 @@ export default function DeleteJobButton({
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Delete failed.");
+        setError(data.message || "Delete failed.");
         return;
       }
-
-      alert("Job deleted successfully.");
 
       router.refresh();
 
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      setError("Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
+    <div>
     <button
       type="button"
       onClick={handleDelete}
@@ -59,5 +60,7 @@ export default function DeleteJobButton({
     >
       {loading ? "Deleting..." : "Delete"}
     </button>
+    {error ? <p role="alert" className="mt-2 max-w-40 text-xs text-red-700">{error}</p> : null}
+    </div>
   );
 }

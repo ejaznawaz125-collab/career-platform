@@ -23,6 +23,7 @@ export default async function EmployerJobsPage() {
     },
     include: {
       jobs: {
+        include: { _count: { select: { applications: true } } },
         orderBy: {
           createdAt: "desc",
         },
@@ -38,7 +39,7 @@ export default async function EmployerJobsPage() {
     <EmployerShell name={session.user.name ?? "Employer"}>
       <div className="space-y-8">
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
             <h1 className="text-4xl font-bold text-slate-900">
@@ -112,9 +113,9 @@ export default async function EmployerJobsPage() {
 
         </div>
 
-        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
 
-          <table className="w-full">
+          <table className="w-full min-w-[760px]">
 
             <thead className="bg-slate-100">
 
@@ -136,6 +137,8 @@ export default async function EmployerJobsPage() {
                   Status
                 </th>
 
+                <th className="px-6 py-4 text-left">Applicants</th>
+
                 <th className="px-6 py-4 text-right">
                   Actions
                 </th>
@@ -149,7 +152,7 @@ export default async function EmployerJobsPage() {
 
   <tr>
     <td
-      colSpan={5}
+      colSpan={6}
       className="px-6 py-12 text-center text-slate-500"
     >
       No jobs posted yet.
@@ -182,7 +185,9 @@ export default async function EmployerJobsPage() {
       </td>
 
       <td className="px-6 py-5">
-        ${job.salaryMin} - ${job.salaryMax}
+        {job.salaryMin !== null || job.salaryMax !== null
+          ? `${job.salaryCurrency} ${job.salaryMin ?? "—"} - ${job.salaryMax ?? "—"}`
+          : "Not specified"}
       </td>
 
       <td className="px-6 py-5">
@@ -199,9 +204,11 @@ export default async function EmployerJobsPage() {
 
       </td>
 
+      <td className="px-6 py-5">{job._count.applications}</td>
+
       <td className="px-6 py-5">
 
-        <div className="flex justify-end gap-3">
+        <div className="flex min-w-max justify-end gap-3">
 
           <Link
             href={`/employer/jobs/${job.id}/applications`}

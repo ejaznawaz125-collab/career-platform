@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import EmployerShell from "@/components/employer/EmployerShell";
 
 import { prisma } from "@/lib/prisma";
+import { JobStatus } from "@prisma/client";
 
 export default async function EmployerDashboardPage() {
   const session = await auth();
@@ -17,14 +18,18 @@ export default async function EmployerDashboardPage() {
   }
 
   const company = await prisma.company.findFirst({
-    where: {
-      ownerId: session.user.id,
-    },
+    where: { ownerId: session.user.id },
+    select: { id: true, name: true, status: true },
   });
 
   if (!company) {
     redirect("/company/create");
   }
+
+  const [activeJobs, applications] = await Promise.all([
+    prisma.job.count({ where: { companyId: company.id, status: JobStatus.PUBLISHED } }),
+    prisma.application.count({ where: { job: { companyId: company.id } } }),
+  ]);
 
   return (
     <EmployerShell name={session.user.name ?? "Employer"}>
@@ -60,7 +65,7 @@ export default async function EmployerDashboardPage() {
             </p>
 
             <h2 className="mt-3 text-2xl font-bold">
-              0
+              {activeJobs}
             </h2>
           </div>
 
@@ -70,7 +75,7 @@ export default async function EmployerDashboardPage() {
             </p>
 
             <h2 className="mt-3 text-2xl font-bold">
-              0
+              {applications}
             </h2>
           </div>
 
@@ -80,7 +85,7 @@ export default async function EmployerDashboardPage() {
             </p>
 
             <h2 className="mt-3 text-2xl font-bold text-green-600">
-              Active
+              {company.status === "ACTIVE" ? "Active" : "Pending"}
             </h2>
           </div>
 

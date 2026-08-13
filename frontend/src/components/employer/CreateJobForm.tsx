@@ -14,6 +14,7 @@ export default function CreateJobForm() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -70,6 +71,7 @@ export default function CreateJobForm() {
 
     try {
       setLoading(true);
+      setError("");
 
       const response = await fetch(
         "/api/employer/jobs/create",
@@ -85,17 +87,15 @@ export default function CreateJobForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Failed to create job.");
+        setError(data.message || "Failed to create job.");
         return;
       }
-
-      alert("Job created successfully.");
 
       router.push("/employer/jobs");
 
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
+      setError("Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -340,6 +340,8 @@ export default function CreateJobForm() {
 
       </div>
 
+      {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
+      <p className="text-sm text-slate-500">New jobs are saved as drafts. Publish from Edit Job after review.</p>
       <Button
         type="submit"
         text="Create Job"

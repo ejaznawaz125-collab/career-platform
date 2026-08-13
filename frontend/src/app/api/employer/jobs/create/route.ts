@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { JobStatus } from "@prisma/client";
+import { jobInputSchema, optionalNumber } from "@/lib/job-management";
 
 function generateSlug(title: string) {
   return title
@@ -12,9 +13,6 @@ function generateSlug(title: string) {
 }
 
 export async function POST(request: Request) {
-  // DEBUG 1
-  console.log("POST API HIT");
-
   try {
     const session = await auth();
 
@@ -38,46 +36,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-
-    // DEBUG 2
-    console.log("REQUEST BODY =", body);
-
-    const {
-      title,
-      categoryId,
-      country,
-      city,
-      jobType,
-      workMode,
-      experienceLevel,
-      salaryMin,
-      salaryMax,
-      vacancies,
-      description,
-      requirements,
-      responsibilities,
-      benefits,
-    } = body;
-
-    console.log("CATEGORY ID =", categoryId);
-
-    if (
-      !title ||
-      !categoryId ||
-      !country ||
-      !city ||
-      !description
-    ) {
+    const parsed = jobInputSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
       return NextResponse.json(
-        {
-          message: "Please fill all required fields.",
-        },
+        { message: parsed.error.issues[0]?.message ?? "Invalid job details." },
         {
           status: 400,
         }
       );
     }
+    const { title, categoryId, country, city, jobType, workMode, experienceLevel, vacancies, description, requirements, responsibilities, benefits } = parsed.data;
 
     let slug = generateSlug(title);
 
@@ -108,18 +76,13 @@ export async function POST(request: Request) {
         jobType,
         workMode,
 
-        salaryMin: salaryMin
-          ? Number(salaryMin)
-          : null,
-
-        salaryMax: salaryMax
-          ? Number(salaryMax)
-          : null,
+        salaryMin: optionalNumber(parsed.data.salaryMin),
+        salaryMax: optionalNumber(parsed.data.salaryMax),
 
         country,
         city,
 
-        vacancies: Number(vacancies || 1),
+        vacancies,
 
         status: JobStatus.DRAFT,
       },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { jobInputSchema, optionalNumber } from "@/lib/job-management";
 
 interface RouteContext {
   params: Promise<{
@@ -51,26 +52,10 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
-
-    const {
-      title,
-      categoryId,
-      country,
-      city,
-      jobType,
-      workMode,
-      experienceLevel,
-      salaryMin,
-      salaryMax,
-      vacancies,
-      description,
-      requirements,
-      responsibilities,
-      benefits,
-      status,
-    } = body;
-        await prisma.job.update({
+    const parsed = jobInputSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ message: parsed.error.issues[0]?.message ?? "Invalid job details." }, { status: 400 });
+    const { title, categoryId, country, city, jobType, workMode, experienceLevel, vacancies, description, requirements, responsibilities, benefits, status } = parsed.data;
+    await prisma.job.update({
       where: {
         id,
       },
@@ -85,15 +70,9 @@ export async function PUT(
         workMode,
         experienceLevel,
 
-        salaryMin: salaryMin
-          ? Number(salaryMin)
-          : null,
-
-        salaryMax: salaryMax
-          ? Number(salaryMax)
-          : null,
-
-        vacancies: Number(vacancies),
+        salaryMin: optionalNumber(parsed.data.salaryMin),
+        salaryMax: optionalNumber(parsed.data.salaryMax),
+        vacancies,
 
         description,
         requirements,
@@ -101,6 +80,7 @@ export async function PUT(
         benefits,
 
         status,
+        ...(status === "PUBLISHED" && !job.publishedAt ? { publishedAt: new Date() } : {}),
       },
     });
 
@@ -155,12 +135,22 @@ export async function DELETE(
       );
     }
 
-    await prisma.job.delete({
+    const job = await prisma.job.findFirst({
       where: {
         id,
         companyId: company.id,
       },
+      select: { id: true },
     });
+
+    if (!job) {
+      return NextResponse.json(
+        { message: "Job not found." },
+        { status: 404 }
+      );
+    }
+
+    await prisma.job.delete({ where: { id: job.id } });
 
     return NextResponse.json({
       success: true,
