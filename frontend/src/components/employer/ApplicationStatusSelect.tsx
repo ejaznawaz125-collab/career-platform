@@ -2,7 +2,6 @@
 
 import { ApplicationStatus } from "@prisma/client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 const labels: Record<ApplicationStatus, string> = {
   APPLIED: "Applied",
@@ -22,7 +21,6 @@ export default function ApplicationStatusSelect({
   applicationId: string;
   status: ApplicationStatus;
 }) {
-  const router = useRouter();
   const [currentStatus, setCurrentStatus] = useState(status);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -48,7 +46,6 @@ export default function ApplicationStatusSelect({
       }
 
       setMessage("Application status updated.");
-      router.refresh();
     } catch (error) {
       setCurrentStatus(previousStatus);
       setIsError(true);
