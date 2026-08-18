@@ -7,11 +7,18 @@ import Button from "@/components/common/Button";
 type ApplyButtonProps = {
   jobId: string;
   initiallyApplied?: boolean;
+  eligibleResumes?: Array<{
+    id: string;
+    title: string;
+    originalName: string | null;
+    isDefault: boolean;
+  }>;
 };
 
 export default function ApplyButton({
   jobId,
   initiallyApplied = false,
+  eligibleResumes = [],
 }: ApplyButtonProps) {
   const router = useRouter();
 
@@ -21,6 +28,7 @@ export default function ApplyButton({
     initiallyApplied ? "You have already applied for this job." : "",
   );
   const [isError, setIsError] = useState(false);
+  const [resumeId, setResumeId] = useState(eligibleResumes[0]?.id ?? "");
 
   async function applyJob() {
     try {
@@ -32,6 +40,8 @@ export default function ApplyButton({
         `/api/jobs/${jobId}/apply`,
         {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resumeId: resumeId || undefined }),
         }
       );
 
@@ -71,6 +81,36 @@ export default function ApplyButton({
 
   return (
     <div>
+      {!applied ? (
+        eligibleResumes.length ? (
+          <label className="mb-4 block min-w-0">
+            <span className="text-sm font-semibold text-slate-700">
+              Resume <span className="font-normal text-slate-500">(optional)</span>
+            </span>
+            <select
+              value={resumeId}
+              onChange={(event) => setResumeId(event.target.value)}
+              disabled={loading}
+              className="mt-2 block w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option value="">Apply without a resume</option>
+              {eligibleResumes.map((resume) => (
+                <option key={resume.id} value={resume.id}>
+                  {resume.title}{resume.isDefault ? " (Default)" : ""}
+                  {resume.originalName ? ` — ${resume.originalName}` : ""}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1.5 block break-words text-xs text-slate-500">
+              The selected managed resume will be retained with this application.
+            </span>
+          </label>
+        ) : (
+          <p className="mb-4 text-sm text-slate-600">
+            You can apply without a resume. Upload a managed resume from your profile to attach one.
+          </p>
+        )
+      ) : null}
       <Button
         text={applied ? "Already Applied" : loading ? "Applying..." : "Apply Now"}
         loading={loading}

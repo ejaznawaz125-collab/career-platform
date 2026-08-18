@@ -186,7 +186,8 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   profile CandidateProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  parses  ResumeParse[]
+  parses       ResumeParse[]
+  applications Application[]
 
   @@unique([profileId, contentHash])
   @@unique([profileId, versionGroupId, version])
@@ -480,9 +481,11 @@ model Application {
   updatedAt   DateTime          @updatedAt
   job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume      Resume?           @relation(fields: [resumeId], references: [id], onDelete: Restrict)
 
   @@unique([userId, jobId])
   @@index([status])
+  @@index([resumeId])
 }
 
 model SavedJob {

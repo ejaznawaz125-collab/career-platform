@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z, ZodError } from "zod";
 import { auth } from "@/auth";
 import { getAuthenticatedCandidateOwner } from "@/lib/candidate-server";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,10 @@ type RouteContext = {
     jobId: string;
   }>;
 };
+
+const applySchema = z.object({
+  resumeId: z.string().trim().min(1).optional(),
+}).strict();
 
 export async function POST(
   request: Request,
@@ -40,6 +45,9 @@ export async function POST(
         },
       );
     }
+
+    const requestText = await request.text();
+    const data = applySchema.parse(requestText ? JSON.parse(requestText) : {});
 
     const { jobId } = await params;
 
@@ -96,11 +104,34 @@ export async function POST(
       );
     }
 
+    const selectedResume = data.resumeId
+      ? await prisma.resume.findFirst({
+          where: {
+            id: data.resumeId,
+            profileId: candidate.profileId,
+            uploadStatus: "READY",
+            storagePath: { not: null },
+            contentHash: { not: null },
+            originalName: { not: null },
+            mimeType: { not: null },
+          },
+          select: { id: true },
+        })
+      : null;
+
+    if (data.resumeId && !selectedResume) {
+      return NextResponse.json(
+        { message: "The selected resume is unavailable." },
+        { status: 400 },
+      );
+    }
+
     const application =
       await prisma.application.create({
         data: {
           userId: candidate.userId,
           jobId,
+          resumeId: selectedResume?.id ?? null,
         },
       });
 
@@ -111,6 +142,13 @@ export async function POST(
       }
     );
   } catch (error) {
+    if (error instanceof ZodError || error instanceof SyntaxError) {
+      return NextResponse.json(
+        { message: "The application request is invalid." },
+        { status: 400 },
+      );
+    }
+
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
@@ -122,6 +160,16 @@ export async function POST(
         {
           status: 409,
         },
+      );
+    }
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
+      return NextResponse.json(
+        { message: "The job or selected resume is no longer available." },
+        { status: 409 },
       );
     }
 

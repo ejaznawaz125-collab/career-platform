@@ -20,12 +20,19 @@ type JobSidebarProps = {
   }>;
   initiallyApplied?: boolean;
   initiallySaved?: boolean;
+  eligibleResumes?: Array<{
+    id: string;
+    title: string;
+    originalName: string | null;
+    isDefault: boolean;
+  }>;
 };
 
 export default function JobSidebar({
   job,
   initiallyApplied = false,
   initiallySaved = false,
+  eligibleResumes = [],
 }: JobSidebarProps) {
   return (
     <div className="sticky top-24 space-y-6">
@@ -39,6 +46,7 @@ export default function JobSidebar({
         <ApplyButton
           jobId={job.id}
           initiallyApplied={initiallyApplied}
+          eligibleResumes={eligibleResumes}
         />
 
         <div className="mt-4">

@@ -24,12 +24,28 @@ function errorResponse(error: unknown, fallback: string) {
     );
   }
 
+  if (
+    error instanceof ResumeInUseError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2003" || error.code === "P2014"))
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "This resume cannot be deleted because it is attached to an existing application.",
+      },
+      { status: 409 },
+    );
+  }
+
   console.error("PROFILE_RESUMES_API_ERROR:", error);
   return NextResponse.json(
     { success: false, message: fallback },
     { status: 500 },
   );
 }
+
+class ResumeInUseError extends Error {}
 
 export async function GET() {
   try {
@@ -170,6 +186,11 @@ export async function DELETE(request: Request) {
 
     await prisma.$transaction(
       async (transaction) => {
+        const applicationCount = await transaction.application.count({
+          where: { resumeId: existing.id },
+        });
+        if (applicationCount > 0) throw new ResumeInUseError();
+
         await transaction.resume.delete({ where: { id: existing.id } });
 
         if (existing.isDefault) {

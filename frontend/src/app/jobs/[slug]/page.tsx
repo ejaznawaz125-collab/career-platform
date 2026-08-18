@@ -84,6 +84,20 @@ export default async function JobDetailsPage({
         select: { id: true },
       })
     : null;
+  const eligibleResumes = candidate && !existingApplication
+    ? await prisma.resume.findMany({
+        where: {
+          profileId: candidate.profileId,
+          uploadStatus: "READY",
+          storagePath: { not: null },
+          contentHash: { not: null },
+          originalName: { not: null },
+          mimeType: { not: null },
+        },
+        orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
+        select: { id: true, title: true, originalName: true, isDefault: true },
+      })
+    : [];
 
   const relatedJobsData = await getRelatedJobs(
     job.id,
@@ -188,6 +202,7 @@ export default async function JobDetailsPage({
                 job={job}
                 initiallyApplied={Boolean(existingApplication)}
                 initiallySaved={Boolean(existingSavedJob)}
+                eligibleResumes={eligibleResumes}
               />
             </div>
           </div>
